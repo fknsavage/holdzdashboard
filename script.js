@@ -167,97 +167,57 @@ document.addEventListener('DOMContentLoaded', () => {
         drawCanvas();
     });
 
-    // --- Create Game logic ---
-    // ... (All the existing code) ...
+    // --- New Functionality: Create Game ---
+    createGameBtn.addEventListener('click', () => {
+        createGame();
+    });
 
-// --- New Functionality: Create Game ---
-createGameBtn.addEventListener('click', () => {
-    createGame();
-});
-
-const createGame = async () => {
-    if (!currentImage) {
-        alert('Please upload a background image first!');
-        return;
-    }
-
-    if (balls.length === 0 && nameShapes.length === 0) {
-        alert('Please add some balls or a name shape to the canvas!');
-        return;
-    }
-
-    const base64Image = imageCanvas.toDataURL('image/png');
-    const playerLimit = parseInt(playerLimitSelect.value, 10);
-    const gameId = 'game-' + Date.now();
-    
-    // This is the data we will send to the server
-    const gameTemplate = {
-        id: gameId,
-        baseImage: base64Image,
-        ballPositions: balls.map(b => ({ x: b.x, y: b.y, radius: b.radius })),
-        nameShapes: nameShapes.map(s => ({ x: s.x, y: s.y, width: s.width, height: s.height, name: s.name, color: s.color, size: s.size })),
-        playerLimit: playerLimit
-    };
-
-    // Send the game data to your live bot on Render
-    try {
-        const response = await fetch('https://holdznchill.onrender.com/create-game', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(gameTemplate)
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to create game on server.');
+    const createGame = async () => {
+        if (!currentImage) {
+            alert('Please upload a background image first!');
+            return;
         }
 
-        const result = await response.json();
-        console.log('Server response:', result);
-        alert('Game has been created! Awaiting players from Facebook Messenger.');
+        if (balls.length === 0 && nameShapes.length === 0) {
+            alert('Please add some balls or a name shape to the canvas!');
+            return;
+        }
 
-        // For now, let's keep the game stored locally as well.
-        let games = JSON.parse(localStorage.getItem('games') || '[]');
-        games.push(gameTemplate);
-        localStorage.setItem('games', JSON.stringify(games));
-
-    } catch (error) {
-        console.error('Error creating game:', error);
-        alert('An error occurred while creating the game. Please try again.');
-    }
-};
-
-// ... (Rest of the script.js file) ...
-
-            // Store the positions and sizes, but not the numbers
-            ballPositions: balls.map(b => ({ x: b.x, y: b.y, radius: b.radius })),
-            nameShape: nameShapes.map(s => ({ x: s.x, y: s.y, width: s.width, height: s.height, name: s.name, color: s.color, size: s.size })),
-            // Store the bingo ball number pool for randomization
-            bingoPool: bingoPool,
-            playerLimit: playerLimit,
-            status: 'active',
-            players: []
+        const base64Image = imageCanvas.toDataURL('image/png');
+        const playerLimit = parseInt(playerLimitSelect.value, 10);
+        const gameId = 'game-' + Date.now();
+        
+        // This is the data we will send to the server
+        const gameTemplate = {
+            id: gameId,
+            baseImage: base64Image,
+            ballPositions: balls.map(b => ({ x: b.x, y: b.y, radius: b.radius, number: b.number, column: b.column })),
+            nameShapes: nameShapes.map(s => ({ x: s.x, y: s.y, width: s.width, height: s.height, name: s.name, color: s.color, size: s.size })),
+            playerLimit: playerLimit
         };
 
-        // Save the game to localStorage
-        let games = JSON.parse(localStorage.getItem('games') || '[]');
-        games.push(gameTemplate);
-        localStorage.setItem('games', JSON.stringify(games));
+        // Send the game data to your live bot on Render
+        try {
+            const response = await fetch('https://holdznchill.onrender.com/create-game', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(gameTemplate)
+            });
 
-        // Lock the canvas from further editing
-        isEditing = false;
-        setControlsState(false);
-        alert('Game has been created! Awaiting players from Facebook Messenger.');
-        
-        console.log('Game template created:', gameTemplate);
-    };
+            if (!response.ok) {
+                throw new Error('Failed to create game on server.');
+            }
 
-    const setControlsState = (enabled) => {
-        const controls = document.querySelectorAll('.controls button, .controls select, .controls input');
-        controls.forEach(control => {
-            control.disabled = !enabled;
-        });
+            const result = await response.json();
+            console.log('Server response:', result);
+            alert('Game has been created! Awaiting players from Facebook Messenger.');
+
+        } catch (error) {
+            console.error('Error creating game:', error);
+            alert('An error occurred while creating the game. Please try again.');
+        }
     };
 
     // Main drawing function
