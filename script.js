@@ -187,7 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const playerLimit = parseInt(playerLimitSelect.value, 10);
         const gameId = 'game-' + Date.now();
         
-        // This is the data we will send to the server
         const gameTemplate = {
             id: gameId,
             baseImage: base64Image,
@@ -196,7 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
             playerLimit: playerLimit
         };
 
-        // Send the game data to your live bot on Render
         try {
             const response = await fetch('https://holdznchill.onrender.com/create-game', {
                 method: 'POST',
@@ -213,6 +211,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
             console.log('Server response:', result);
             alert('Game has been created! Awaiting players from Facebook Messenger.');
+
+            // This is the new part: Saving the game to localStorage
+            const newGame = {
+                id: gameId,
+                status: 'active',
+                playerLimit: playerLimit,
+                players: []
+            };
+            let games = JSON.parse(localStorage.getItem('games') || '[]');
+            games.push(newGame);
+            localStorage.setItem('games', JSON.stringify(games));
 
         } catch (error) {
             console.error('Error creating game:', error);
