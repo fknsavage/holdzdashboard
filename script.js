@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const textSizeSlider = document.getElementById('text-size-slider');
     const playerNameInput = document.getElementById('player-name-input');
     const playerLimitSelect = document.getElementById('player-limit');
+    const customGameIdInput = document.getElementById('custom-game-id');
     const createGameBtn = document.getElementById('create-game-btn');
 
     const ctx = imageCanvas.getContext('2d');
@@ -173,6 +174,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const createGame = async () => {
+        const gameId = customGameIdInput.value.trim();
+        if (!gameId) {
+            alert('Please enter a custom game ID!');
+            return;
+        }
+
         if (!currentImage) {
             alert('Please upload a background image first!');
             return;
@@ -185,7 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const base64Image = imageCanvas.toDataURL('image/png');
         const playerLimit = parseInt(playerLimitSelect.value, 10);
-        const gameId = 'game-' + Date.now();
         
         const gameTemplate = {
             id: gameId,
@@ -205,14 +211,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to create game on server.');
+                // Read the error message from the bot if it's a conflict
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to create game on server.');
             }
 
             const result = await response.json();
             console.log('Server response:', result);
-            alert('Game has been created! Awaiting players from Facebook Messenger.');
+            alert(`Game with ID "${gameId}" has been created! Awaiting players from Facebook Messenger.`);
 
-            // This is the new part: Saving the game to localStorage
             const newGame = {
                 id: gameId,
                 status: 'active',
@@ -225,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Error creating game:', error);
-            alert('An error occurred while creating the game. Please try again.');
+            alert(`An error occurred while creating the game: ${error.message}. Please try again.`);
         }
     };
 
