@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holdz N Chill</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header class="header">
+        <h1 class="header-title">Holdz N Chill</h1>
+        <div class="hamburger-menu" id="hamburger-menu">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <nav class="nav-menu" id="nav-menu">
+            <ul>
+                <li><a href="index.html">Card Creation</a></li>
+                <li><a href="active_games.html">Active Games</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="controls">
+            <div class="ball-controls">
+                <label for="ball-count">Number of Balls:</label>
+                <select id="ball-count">
+                    <option value="2">2 Balls</option>
+                    <option value="3">3 Balls</option>
+                    <option value="5">5 Balls</option>
+                    <option value="10">10 Balls</option>
+                    <option value="15">15 Balls</option>
+                </select>
+                <button id="generate-balls-btn">Generate</button>
+            </div>
+            <div class="size-controls">
+                <label for="ball-size">Ball Size:</label>
+                <input type="range" id="ball-size" min="10" max="80" value="30">
+            </div>
+            <div class="player-controls">
+                <button id="add-name-shape-btn">Add Player Name Box</button>
+                <label for="text-color-slider">Text Color:</label>
+                <input type="range" id="text-color-slider" min="0" max="1" value="1" step="1">
+                <label for="text-size-slider">Text Size:</label>
+                <input type="range" id="text-size-slider" min="12" max="50" value="20">
+                <input type="text" id="player-name-input" placeholder="Player Name">
+            </div>
+            <div class="game-controls">
+                <label for="player-limit">Max Players:</label>
+                <select id="player-limit">
+                    <option value="1">1 Player</option>
+                    <option value="5">5 Players</option>
+                    <option value="10">10 Players</option>
+                    <option value="15">15 Players</option>
+                    <option value="25">25 Players</option>
+                </select>
+                <button id="create-game-btn">Create Game</button>
+            </div>
+            <div class="upload-controls">
+                <input type="file" id="image-upload" accept="image/*" class="upload-button">
+                <label for="image-upload" class="upload-label">Upload Image</label>
+            </div>
+            <button id="reset-btn">Reset Canvas</button>
+        </div>
+        <canvas id="image-canvas"></canvas>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

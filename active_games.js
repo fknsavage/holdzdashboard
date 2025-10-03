@@ -1,0 +1,86 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const hamburgerMenu = document.getElementById('hamburger-menu');
+    const navMenu = document.getElementById('nav-menu');
+    const gamesList = document.getElementById('games-list');
+    const noGamesMessage = document.getElementById('no-games');
+
+    // Toggle the navigation menu
+    hamburgerMenu.addEventListener('click', () => {
+        navMenu.classList.toggle('open');
+    });
+
+    // Function to retrieve games from localStorage
+    const getGames = () => {
+        return JSON.parse(localStorage.getItem('games') || '[]');
+    };
+
+    // Function to render the list of games
+    const renderGames = () => {
+        const games = getGames();
+        gamesList.innerHTML = ''; // Clear previous list
+
+        const activeGames = games.filter(game => game.status === 'active');
+        if (activeGames.length === 0) {
+            noGamesMessage.style.display = 'block';
+            return;
+        } else {
+            noGamesMessage.style.display = 'none';
+        }
+
+        activeGames.forEach(game => {
+            const li = document.createElement('li');
+            li.className = 'game-item';
+
+            const gameInfo = document.createElement('div');
+            gameInfo.className = 'game-info';
+            gameInfo.textContent = `Game ID: ${game.id}`;
+
+            const gameDetails = document.createElement('div');
+            gameDetails.className = 'game-details';
+            gameDetails.innerHTML = `
+                Players: <strong>${game.players.length}</strong> / <strong>${game.playerLimit}</strong><br>
+                Slots Left: <strong>${game.playerLimit - game.players.length}</strong>
+            `;
+
+            const gameActions = document.createElement('div');
+            gameActions.className = 'game-actions';
+            const playedButton = document.createElement('button');
+            playedButton.textContent = 'Mark as Played';
+            playedButton.addEventListener('click', () => {
+                handleMarkAsPlayed(game.id);
+            });
+            gameActions.appendChild(playedButton);
+
+            li.appendChild(gameInfo);
+            li.appendChild(gameDetails);
+            li.appendChild(gameActions);
+            gamesList.appendChild(li);
+        });
+    };
+
+    // Handle the "Mark as Played" button click
+    const handleMarkAsPlayed = (gameId) => {
+        const winnerName = prompt("Enter the name of the winner:");
+        if (winnerName === null || winnerName.trim() === '') {
+            alert("Please enter a winner's name to send the congratulations message.");
+            return;
+        }
+
+        const message = `Congratulations, ${winnerName} is the winner! Hope you all had a blast!`;
+        alert(`Congratulations message to be sent to players in Game ${gameId}: "${message}"`);
+
+        // Update game status to 'inactive'
+        let games = getGames();
+        games = games.map(g => {
+            if (g.id === gameId) {
+                g.status = 'inactive';
+            }
+            return g;
+        });
+        localStorage.setItem('games', JSON.stringify(games));
+        renderGames(); // Re-render the list
+    };
+
+    // Initial render
+    renderGames();
+});
