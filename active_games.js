@@ -17,8 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to render the list of games
     const renderGames = () => {
         const games = getGames();
-        gamesList.innerHTML = ''; // Clear previous list
-
+        gamesList.innerHTML = '';
+        
         const activeGames = games.filter(game => game.status === 'active');
         if (activeGames.length === 0) {
             noGamesMessage.style.display = 'block';
@@ -69,7 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const message = `Congratulations, ${winnerName} is the winner! Hope you all had a blast!`;
         alert(`Congratulations message to be sent to players in Game ${gameId}: "${message}"`);
 
-        // Update game status to 'inactive'
         let games = getGames();
         games = games.map(g => {
             if (g.id === gameId) {
@@ -78,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return g;
         });
         localStorage.setItem('games', JSON.stringify(games));
-        renderGames(); // Re-render the list
+        renderGames();
     };
 
     // Initial render
