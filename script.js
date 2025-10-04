@@ -190,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // THIS IS THE FIX: Remove the data URI part.
         const base64Image = imageCanvas.toDataURL('image/png').split(',')[1];
         const playerLimit = parseInt(playerLimitSelect.value, 10);
         
