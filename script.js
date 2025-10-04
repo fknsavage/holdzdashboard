@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const playerLimitSelect = document.getElementById('player-limit');
     const customGameIdInput = document.getElementById('custom-game-id');
     const createGameBtn = document.getElementById('create-game-btn');
-    const loadingMessage = document.getElementById('loading-message');
 
     const ctx = imageCanvas.getContext('2d');
     let balls = [];
@@ -191,7 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // THIS IS THE FIX: Remove the data URI part.
         const base64Image = imageCanvas.toDataURL('image/png').split(',')[1];
         const playerLimit = parseInt(playerLimitSelect.value, 10);
         
@@ -204,10 +202,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            // Show loading message and disable button
-            createGameBtn.disabled = true;
-            loadingMessage.style.display = 'block';
-
             const response = await fetch('https://holdznchill.onrender.com/create-game', {
                 method: 'POST',
                 headers: {
@@ -238,10 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error creating game:', error);
             alert(`An error occurred while creating the game: ${error.message}. Please try again.`);
-        } finally {
-            // Hide loading message and re-enable button
-            createGameBtn.disabled = false;
-            loadingMessage.style.display = 'none';
         }
     };
 
