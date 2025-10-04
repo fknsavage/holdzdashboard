@@ -4,21 +4,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const gamesList = document.getElementById('games-list');
     const noGamesMessage = document.getElementById('no-games');
 
-    // Toggle the navigation menu
     hamburgerMenu.addEventListener('click', () => {
         navMenu.classList.toggle('open');
     });
 
-    // Function to retrieve games from localStorage
     const getGames = () => {
         return JSON.parse(localStorage.getItem('games') || '[]');
     };
 
-    // Function to render the list of games
     const renderGames = () => {
         const games = getGames();
         gamesList.innerHTML = '';
-        
+
         const activeGames = games.filter(game => game.status === 'active');
         if (activeGames.length === 0) {
             noGamesMessage.style.display = 'block';
@@ -47,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const playedButton = document.createElement('button');
             playedButton.textContent = 'Mark as Played';
             playedButton.addEventListener('click', () => {
-                handleMarkAsPlayed(game.id);
+                handleMarkAsPlayed(game.id, game.players);
             });
             gameActions.appendChild(playedButton);
 
@@ -58,8 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // Handle the "Mark as Played" button click
-    const handleMarkAsPlayed = (gameId) => {
+    const handleMarkAsPlayed = async (gameId, players) => {
         const winnerName = prompt("Enter the name of the winner:");
         if (winnerName === null || winnerName.trim() === '') {
             alert("Please enter a winner's name to send the congratulations message.");
@@ -67,19 +63,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const message = `Congratulations, ${winnerName} is the winner! Hope you all had a blast!`;
-        alert(`Congratulations message to be sent to players in Game ${gameId}: "${message}"`);
 
-        let games = getGames();
-        games = games.map(g => {
-            if (g.id === gameId) {
-                g.status = 'inactive';
+        try {
+            const response = await fetch('https://holdznchill.onrender.com/end-game', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ gameId, winnerName, players })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to end game on server.');
             }
-            return g;
-        });
-        localStorage.setItem('games', JSON.stringify(games));
-        renderGames();
+
+            const result = await response.json();
+            console.log('Server response:', result);
+            alert(`Game ${gameId} has been marked as played, and messages have been sent.`);
+
+            let games = getGames();
+            games = games.map(g => {
+                if (g.id === gameId) {
+                    g.status = 'inactive';
+                }
+                return g;
+            });
+            localStorage.setItem('games', JSON.stringify(games));
+            renderGames();
+
+        } catch (error) {
+            console.error('Error ending game:', error);
+            alert(`An error occurred while ending the game: ${error.message}. Please try again.`);
+        }
     };
 
-    // Initial render
     renderGames();
 });
