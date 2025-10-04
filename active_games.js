@@ -91,6 +91,26 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             localStorage.setItem('games', JSON.stringify(games));
             renderGames();
+
+        } catch (error) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to end game on server.');
+            }
+
+            const result = await response.json();
+            console.log('Server response:', result);
+            alert(`Game ${gameId} has been marked as played, and messages have been sent.`);
+
+            let games = getGames();
+            games = games.map(g => {
+                if (g.id === gameId) {
+                    g.status = 'inactive';
+                }
+                return g;
+            });
+            localStorage.setItem('games', JSON.stringify(games));
+            renderGames();
+
         } catch (error) {
             console.error('Error ending game:', error);
             alert(`An error occurred while ending the game: ${error.message}. Please try again.`);
