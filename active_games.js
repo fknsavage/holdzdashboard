@@ -91,7 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             localStorage.setItem('games', JSON.stringify(games));
             renderGames();
-
         } catch (error) {
             console.error('Error ending game:', error);
             alert(`An error occurred while ending the game: ${error.message}. Please try again.`);
