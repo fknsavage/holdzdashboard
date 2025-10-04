@@ -23,12 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentImage = null;
     let isEditing = true;
 
-    // Toggle the navigation menu
     hamburgerMenu.addEventListener('click', () => {
         navMenu.classList.toggle('open');
     });
 
-    // Handle image upload and draw on canvas
     imageUpload.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (file && file.type.startsWith('image/')) {
@@ -46,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Bingo number pools
     const bingoPool = {
         'B': Array.from({length: 15}, (_, i) => i + 1),
         'I': Array.from({length: 15}, (_, i) => i + 16),
@@ -56,7 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const columns = ['B', 'I', 'N', 'G', 'O'];
 
-    // Function to generate a random number from a pool
     const getRandomNumber = (pool) => {
         if (pool.length === 0) return null;
         const index = Math.floor(Math.random() * pool.length);
@@ -65,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return number;
     };
 
-    // Generate balls button click
     generateBallsBtn.addEventListener('click', () => {
         if (!isEditing) return;
         const ballCount = parseInt(ballCountSelect.value, 10);
@@ -99,7 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
         drawCanvas();
     });
 
-    // Add Name Shape button click
     addNameShapeBtn.addEventListener('click', () => {
         if (!isEditing) return;
         const playerName = playerNameInput.value || 'Player Name';
@@ -118,7 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
         drawCanvas();
     });
 
-    // Handle ball size change from slider
     ballSizeSlider.addEventListener('input', () => {
         if (!isEditing) return;
         const newRadius = parseInt(ballSizeSlider.value, 10);
@@ -128,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
         drawCanvas();
     });
     
-    // Handle text color change from slider
     textColorSlider.addEventListener('input', () => {
         if (!isEditing) return;
         const newColor = textColorSlider.value === '1' ? 'black' : 'white';
@@ -138,7 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
         drawCanvas();
     });
 
-    // Handle text size change from slider
     textSizeSlider.addEventListener('input', () => {
         if (!isEditing) return;
         const newSize = parseInt(textSizeSlider.value, 10);
@@ -148,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
         drawCanvas();
     });
 
-    // Handle player name input change
     playerNameInput.addEventListener('input', () => {
         if (!isEditing) return;
         nameShapes.forEach(shape => {
@@ -157,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
         drawCanvas();
     });
 
-    // Reset button functionality
     resetBtn.addEventListener('click', () => {
         balls = [];
         nameShapes = [];
@@ -168,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
         drawCanvas();
     });
 
-    // --- New Functionality: Create Game ---
     createGameBtn.addEventListener('click', () => {
         createGame();
     });
@@ -235,7 +223,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Main drawing function
     const drawCanvas = () => {
         ctx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
         if (currentImage) {
@@ -245,7 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
         drawNameShapes();
     };
 
-    // Function to draw all balls
     const drawBalls = () => {
         balls.forEach(ball => {
             ctx.beginPath();
@@ -262,7 +248,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
     
-    // Function to draw all name shapes
     const drawNameShapes = () => {
         nameShapes.forEach(shape => {
             ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
@@ -276,7 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // Mouse and Touch Events for Drag-and-Drop
     const getMousePos = (canvas, event) => {
         const rect = imageCanvas.getBoundingClientRect();
         const scaleX = imageCanvas.width / rect.width;
