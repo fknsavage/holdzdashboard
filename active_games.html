@@ -314,7 +314,7 @@
     <main>
         <h2 class="page-title">Active Games</h2>
         <div class="game-cards-container" id="game-cards-container">
-            <p style="text-align: center;">No active games found.</p>
+            <p style="text-align: center;">Loading games...</p>
         </div>
     </main>
     
@@ -333,10 +333,29 @@
             const activeGameModal = document.getElementById('active-game-modal');
             const playerCardsPreview = document.getElementById('player-cards-preview');
 
-            // Fetches active games from the bot's API
+            const API_URL = 'https://holdznchill.onrender.com';
+
+            hamburgerMenu.addEventListener('click', () => {
+                hamburgerMenu.classList.toggle('open');
+                navPanel.classList.toggle('open');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!hamburgerMenu.contains(e.target) && !navPanel.contains(e.target) && navPanel.classList.contains('open')) {
+                    hamburgerMenu.classList.remove('open');
+                    navPanel.classList.remove('open');
+                }
+            });
+
+            activeGameModal.addEventListener('click', (e) => {
+                if (e.target === activeGameModal) {
+                    activeGameModal.style.display = 'none';
+                }
+            });
+
             async function fetchActiveGames() {
                 try {
-                    const response = await fetch('https://holdznchill.onrender.com/games');
+                    const response = await fetch(`${API_URL}/games`);
                     if (!response.ok) {
                         throw new Error(`API call failed with status: ${response.status}`);
                     }
@@ -348,7 +367,6 @@
                 }
             }
 
-            // Renders the game cards on the page
             function renderGameCards(games) {
                 gameCardsContainer.innerHTML = '';
                 const activeGames = games.filter(g => g.status === 'active');
@@ -370,7 +388,7 @@
                         </li>
                     `).join('');
 
-                    const endGameButton = `<button class="end-game-btn" data-game-id="${game.id}" data-winner="Winner Name" ${playersCount === 0 ? 'disabled' : ''}>End Game</button>`;
+                    const endGameButton = `<button class="end-game-btn" data-game-id="${game.id}" ${playersCount === 0 ? 'disabled' : ''}>End Game</button>`;
                     
                     const gameCardHtml = `
                         <div class="game-card" data-game-id="${game.id}">
@@ -414,7 +432,7 @@
                 activeGameModal.style.display = 'flex';
 
                 try {
-                    const response = await fetch(`https://holdznchill.onrender.com/games/${gameId}/cards`);
+                    const response = await fetch(`${API_URL}/games/${gameId}/cards`);
                     const cards = await response.json();
 
                     if (cards.length === 0) {
@@ -436,7 +454,6 @@
                 }
             }
 
-
             async function handleRemovePlayer(event) {
                 event.stopPropagation();
                 const button = event.target;
@@ -445,7 +462,7 @@
 
                 if (confirm(`Are you sure you want to remove player ${playerId} from game ${gameId}?`)) {
                     try {
-                        const response = await fetch(`https://holdznchill.onrender.com/games/${gameId}/players/${playerId}`, {
+                        const response = await fetch(`${API_URL}/games/${gameId}/players/${playerId}`, {
                             method: 'DELETE',
                         });
 
@@ -474,7 +491,7 @@
 
                 if (confirm(`Are you sure you want to end game ${gameId} and declare ${winnerName} as the winner?`)) {
                     try {
-                        const response = await fetch(`https://holdznchill.onrender.com/games/${gameId}/end`, {
+                        const response = await fetch(`${API_URL}/games/${gameId}/end`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ winner: winnerName })
@@ -484,7 +501,8 @@
                             throw new Error(`Failed to end game. Status: ${response.status}`);
                         }
 
-                        fetchActiveGames();
+                        // Redirect to history page after ending the game
+                        window.location.href = `history.html`;
                     } catch (error) {
                         console.error('Error ending game:', error);
                         alert('Failed to end game. Please check the bot API.');
