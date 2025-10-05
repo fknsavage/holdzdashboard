@@ -2,83 +2,972 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Holdz N Chill</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Holdz N Chill Bingo</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #2c3e50;
+            --background-color: #1a1a2e;
+            --text-color: #ecf0f1;
+            --hover-glow: #8e44ad;
+            --panel-color: #2a3a4e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Dev Panel */
+        .dev-panel {
+            position: relative;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            z-index: 200;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        #dev-log {
+            font-family: monospace;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1;
+        }
+        
+        #copy-log-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+            transition: color 0.2s;
+        }
+        
+        #copy-log-btn:active {
+            color: var(--text-color);
+        }
+
+        /* Header & Navigation */
+        .main-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem 2rem;
+            border-bottom: 2px solid var(--secondary-color);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 100;
+        }
+        
+        .header-top {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .group-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            animation: glow 2s infinite ease-in-out;
+        }
+        
+        @keyframes glow {
+            0% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+            50% { text-shadow: 0 0 15px var(--hover-glow), 0 0 25px var(--hover-glow); }
+            100% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+        }
+        
+        .hamburger-menu {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 20px;
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .line {
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .line-1 { transform-origin: top left; }
+        .line-2 { opacity: 0; }
+        .line-3 { transform-origin: bottom left; }
+        
+        .hamburger-menu.open .line-1 { transform: rotate(45deg) translate(5px, 5px); }
+        .hamburger-menu.open .line-2 { opacity: 0; }
+        .hamburger-menu.open .line-3 { transform: rotate(-45deg) translate(5px, -5px); }
+        
+        .nav-panel {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 250px;
+            background-color: var(--panel-color);
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            transform: translateY(-100%) scaleY(0);
+            transform-origin: top;
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            padding: 1rem 0;
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .nav-panel.open {
+            transform: translateY(0) scaleY(1);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .nav-item {
+            display: block;
+            padding: 0.75rem 2rem;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .date-time-container {
+            width: 100%;
+            text-align: center;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 1rem;
+        }
+        
+        #current-date-time {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* Main Content & Layout */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .content-container {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 2rem;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            margin: 2rem;
+            border: 2px dashed var(--primary-color);
+            border-radius: 10px;
+            background-color: var(--secondary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            cursor: default;
+            transition: all 0.3s ease-in-out;
+            position: relative;
+        }
+
+        .canvas-container.dragging {
+             cursor: grabbing;
+        }
+        
+        .canvas-container:hover {
+            border-color: var(--hover-glow);
+            background-color: rgba(44, 62, 80, 0.5);
+            box-shadow: 0 0 20px rgba(74, 144, 226, 0.5);
+        }
+        
+        #bingo-canvas {
+            display: block;
+            width: 100%; 
+            height: 100%;
+            background-color: transparent;
+        }
+        
+        #canvas-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-color);
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        #canvas-placeholder.hidden {
+            display: none;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+            transition: color 0.3s ease-in-out;
+        }
+
+        /* Controls & Inputs */
+        .controls-container {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            background-color: var(--background-color);
+            border-top: 2px solid var(--secondary-color);
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+            margin-top: 2rem;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .control-label {
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .segmented-control {
+            display: flex;
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            overflow: hidden;
+            padding: 2px;
+        }
+        
+        .control-button {
+            flex: 1;
+            background-color: transparent;
+            border: none;
+            color: var(--text-color);
+            padding: 0.75rem 0.5rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            border-radius: 6px;
+        }
+        
+        .control-button.active {
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
+            transform: scale(1.05);
+        }
+        
+        .text-input {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: none;
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--text-color);
+            padding: 0.75rem;
+            font-size: 1rem;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        
+        .text-input:focus {
+            border-color: var(--hover-glow);
+            box-shadow: 2px 0 10px rgba(142, 68, 173, 0.5);
+        }
+        
+        .size-slider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .size-slider .fas {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+        
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: var(--secondary-color);
+            outline: none;
+            border-radius: 3px;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+        
+        .action-buttons-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .create-button {
+            background-color: var(--primary-color);
+            color: var(--background-color);
+        }
+        
+        .create-button:hover {
+            background-color: #3b7ad1;
+            transform: translateY(-2px);
+        }
+
+        .action-button.full {
+            flex: 1;
+        }
+
+        .action-button {
+            border: none;
+            border-radius: 50px;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+        }
+        
+        .reset-button {
+            background-color: #e74c3c;
+            color: var(--text-color);
+        }
+        
+        .reset-button:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+        }
+    </style>
 </head>
 <body>
+    <div class="dev-panel">
+        <span id="dev-log">Ready to log...</span>
+        <button id="copy-log-btn"><i class="fas fa-clipboard"></i></button>
+    </div>
 
-    <header class="header">
-        <h1 class="header-title">Holdz N Chill</h1>
-        <div class="hamburger-menu" id="hamburger-menu">
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
+    <header class="main-header">
+        <div class="header-top">
+            <h1 class="group-name">Holdz N Chill</h1>
+            <div class="hamburger-menu" id="hamburger-menu">
+                <div class="line line-1"></div>
+                <div class="line line-2"></div>
+                <div class="line line-3"></div>
+            </div>
+            <div class="nav-panel" id="nav-panel">
+                <a href="index.html" class="nav-item active">Card Creation</a>
+                <a href="active_games.html" class="nav-item">Active Games</a>
+                <a href="history.html" class="nav-item">History</a>
+            </div>
         </div>
-        <nav class="nav-menu" id="nav-menu">
-            <ul>
-                <li><a href="index.html">Card Creation</a></li>
-                <li><a href="active_games.html">Active Games</a></li>
-            </ul>
-        </nav>
     </header>
 
-    <main class="main-content">
-        <div class="controls">
-            <div class="ball-controls">
-                <label for="ball-count">Number of Balls:</label>
-                <select id="ball-count">
-                    <option value="3">3 Balls</option>
-                    <option value="5">5 Balls</option>
-                    <option value="10">10 Balls</option>
-                    <option value="15">15 Balls</option>
-                </select>
-                <button id="generate-balls-btn">Generate</button>
+    <main class="content-container">
+        <section class="canvas-container" id="canvas-container">
+            <canvas id="bingo-canvas"></canvas>
+            <div class="canvas-content" id="canvas-placeholder">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <p>Upload your Bingo Hold Card</p>
             </div>
-            <div class="size-controls">
-                <label for="ball-size">Ball Size:</label>
-                <input type="range" id="ball-size" min="10" max="80" value="30">
+            <input type="file" id="image-upload-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
+        </section>
+        
+        <section class="controls-container">
+            <button class="action-button upload-button" id="upload-button">
+                <i class="fas fa-upload"></i> Upload PNG
+            </button>
+            
+            <div class="control-group">
+                <span class="control-label">Balls Drawn:</span>
+                <div class="segmented-control" id="ball-count-selector">
+                    <button class="control-button" data-value="2">2</button>
+                    <button class="control-button" data-value="3">3</button>
+                    <button class="control-button active" data-value="5">5</button>
+                    <button class="control-button" data-value="10">10</button>
+                    <button class="control-button" data-value="15">15</button>
+                </div>
+                <div class="size-slider">
+                    <i class="fas fa-dice"></i>
+                    <input type="range" min="10" max="50" value="24" class="slider" id="ball-size-slider">
+                </div>
             </div>
-            <div class="player-controls">
-                <button id="add-name-shape-btn">Add Player Name Box</button>
-                <label for="text-color-slider">Text Color:</label>
-                <input type="range" id="text-color-slider" min="0" max="1" value="1" step="1">
-                <label for="text-size-slider">Text Size:</label>
-                <input type="range" id="text-size-slider" min="12" max="50" value="20">
-                <input type="text" id="player-name-input" placeholder="Player Name">
-            </div>
-            <div class="game-controls">
-                <label for="player-limit">Max Players:</label>
-                <select id="player-limit">
-                    <option value="1">1 Player</option>
-                    <option value="5">5 Players</option>
-                    <option value="10">10 Players</option>
-                    <option value="15">15 Players</option>
-                    <option value="25">25 Players</option>
-                </select>
-                <label for="custom-game-id">Custom Game ID:</label>
-                <input type="text" id="custom-game-id" placeholder="e.g., brandisgame">
-                <label for="max-cards-per-player">Max Cards:</label>
-                <select id="max-cards-per-player">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                </select>
-                <button id="create-game-btn">Create Game</button>
-            </div>
-            <div class="upload-controls">
-                <input type="file" id="image-upload" accept="image/*" class="upload-button">
-                <label for="image-upload" class="upload-label">Upload Image</label>
-            </div>
-            <button id="reset-btn">Reset Canvas</button>
-            <div class="loading-message" id="loading-message" style="display: none;">
-                Creating game... Please wait.
-            </div>
-        </div>
-        <canvas id="image-canvas"></canvas>
-    </main>
 
-    <script src="script.js"></script>
+            <div class="control-group">
+                <span class="control-label">Player Name:</span>
+                <input type="text" class="text-input" id="player-name-input" placeholder="Enter player's name">
+                <div class="size-slider">
+                    <i class="fas fa-font"></i>
+                    <input type="range" min="10" max="50" value="24" class="slider" id="name-size-slider">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Date & Time Font Size:</span>
+                <div class="size-slider">
+                    <i class="fas fa-calendar-alt"></i>
+                    <input type="range" min="10" max="50" value="20" class="slider" id="date-size-slider">
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <span class="control-label">Max Players:</span>
+                <div class="segmented-control" id="max-players-selector">
+                    <button class="control-button active" data-value="5">5</button>
+                    <button class="control-button" data-value="10">10</button>
+                    <button class="control-button" data-value="15">15</button>
+                    <button class="control-button" data-value="25">25</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Cards per User:</span>
+                <div class="segmented-control" id="cards-per-user-selector">
+                    <button class="control-button active" data-value="1">1</button>
+                    <button class="control-button" data-value="3">3</button>
+                    <button class="control-button" data-value="5">5</button>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <span class="control-label">Game ID:</span>
+                <input type="text" class="text-input" id="game-id-input" placeholder="Enter unique game ID">
+            </div>
+
+            <div class="action-buttons-container">
+                 <button class="action-button create-button full" id="draw-balls-button">
+                    <i class="fas fa-dice"></i> Draw Balls
+                </button>
+                <button class="action-button create-button full" id="create-game-button">
+                    <i class="fas fa-rocket"></i> Create Game
+                </button>
+                <button class="action-button reset-button full" id="reset-button">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+            </div>
+        </section>
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Dev Panel Setup ---
+            const devLog = document.getElementById('dev-log');
+            const copyLogBtn = document.getElementById('copy-log-btn');
+            const logHistory = [];
+            const log = (message) => {
+                const timestamp = new Date().toLocaleTimeString();
+                const logMessage = `[${timestamp}] ${message}`;
+                devLog.textContent = logMessage;
+                logHistory.push(logMessage);
+                console.log(logMessage);
+            };
+            
+            copyLogBtn.addEventListener('click', () => {
+                const fullLog = logHistory.join('\n');
+                navigator.clipboard.writeText(fullLog).then(() => {
+                    log('Log copied to clipboard!');
+                }).catch(err => {
+                    log('Failed to copy log.');
+                    console.error('Copy failed', err);
+                });
+            });
+
+            log('App starting...');
+
+            // --- Core UI Element References ---
+            const hamburgerMenu = document.getElementById('hamburger-menu');
+            const navPanel = document.getElementById('nav-panel');
+            const canvas = document.getElementById('bingo-canvas');
+            const ctx = canvas.getContext('2d');
+            const canvasPlaceholder = document.getElementById('canvas-placeholder');
+            const imageUploadInput = document.getElementById('image-upload-input');
+            const canvasContainer = document.getElementById('canvas-container');
+            const uploadButton = document.getElementById('upload-button');
+            const ballCountSelector = document.getElementById('ball-count-selector');
+            const drawBallsButton = document.getElementById('draw-balls-button');
+            const ballSizeSlider = document.getElementById('ball-size-slider');
+            const playerNameInput = document.getElementById('player-name-input');
+            const nameSizeSlider = document.getElementById('name-size-slider');
+            const dateSizeSlider = document.getElementById('date-size-slider');
+            const createGameButton = document.getElementById('create-game-button');
+            const resetButton = document.getElementById('reset-button');
+
+            // --- State Management ---
+            const state = {
+                selectedElement: null,
+                isDragging: false,
+                balls: [],
+                textPlaceholder: null,
+                dateTimePlaceholder: null,
+                uploadedImage: null,
+                devicePixelRatio: window.devicePixelRatio || 1,
+            };
+
+            // --- BingoBall Class ---
+            class BingoBall {
+                constructor(x, y, radius, color = '#e74c3c') {
+                    this.x = x;
+                    this.y = y;
+                    this.radius = radius;
+                    this.color = color;
+                    this.type = 'ball';
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    ctx.shadowBlur = 10;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.closePath();
+                }
+
+                isPointInside(x, y) {
+                    const dx = x - this.x;
+                    const dy = y - this.y;
+                    return dx * dx + dy * dy < this.radius * this.radius;
+                }
+            }
+            
+            // --- TextPlaceholder Class ---
+            class TextPlaceholder {
+                constructor(x, y, text, fontSize, fontColor = '#ecf0f1', type = 'text') {
+                    this.x = x;
+                    this.y = y;
+                    this.text = text;
+                    this.fontSize = fontSize;
+                    this.fontColor = fontColor;
+                    this.type = type;
+                    this.width = 0;
+                    this.height = 0;
+                }
+
+                draw() {
+                    ctx.font = `${this.fontSize}px Montserrat`;
+                    ctx.fillStyle = this.fontColor;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                    ctx.shadowBlur = 5;
+                    
+                    const lines = this.text.split('\n');
+                    let lineHeight = this.fontSize * 1.2;
+                    let totalHeight = lines.length * lineHeight;
+                    let startY = this.y - totalHeight / 2 + lineHeight / 2;
+                    
+                    for (let i = 0; i < lines.length; i++) {
+                        ctx.fillText(lines[i], this.x, startY + i * lineHeight);
+                    }
+                    
+                    ctx.shadowBlur = 0;
+                    this.width = ctx.measureText(lines[0]).width;
+                    this.height = totalHeight;
+                }
+                
+                isPointInside(x, y) {
+                    const lines = this.text.split('\n');
+                    const totalHeight = lines.length * this.fontSize * 1.2;
+                    return x >= this.x - this.width / 2 && 
+                           x <= this.x + this.width / 2 && 
+                           y >= this.y - totalHeight / 2 && 
+                           y <= this.y + totalHeight / 2;
+                }
+            }
+
+            // --- Canvas Functions ---
+            const resizeCanvas = () => {
+                const cssWidth = canvasContainer.clientWidth;
+                const cssHeight = canvasContainer.clientHeight;
+
+                canvas.width = cssWidth * state.devicePixelRatio;
+                canvas.height = cssHeight * state.devicePixelRatio;
+                
+                canvas.style.width = cssWidth + 'px';
+                canvas.style.height = cssHeight + 'px';
+                
+                ctx.scale(state.devicePixelRatio, state.devicePixelRatio);
+                drawCanvas();
+            };
+            window.addEventListener('resize', () => {
+                log('Window resized.');
+                state.devicePixelRatio = window.devicePixelRatio || 1; 
+                resizeCanvas();
+            });
+
+            const drawCanvas = () => {
+                log('Drawing canvas...');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (state.uploadedImage) {
+                    canvasPlaceholder.classList.add('hidden');
+                    const canvasCssWidth = canvas.width / state.devicePixelRatio;
+                    const canvasCssHeight = canvas.height / state.devicePixelRatio;
+                    const imgAspectRatio = state.uploadedImage.width / state.uploadedImage.height;
+                    const canvasAspectRatio = canvasCssWidth / canvasCssHeight;
+                    
+                    let imgDrawX = 0, imgDrawY = 0, imgDrawWidth = 0, imgDrawHeight = 0;
+                    if (imgAspectRatio > canvasAspectRatio) {
+                        imgDrawWidth = canvasCssWidth;
+                        imgDrawHeight = canvasCssWidth / imgAspectRatio;
+                        imgDrawX = 0;
+                        imgDrawY = (canvasCssHeight - imgDrawHeight) / 2;
+                    } else {
+                        imgDrawWidth = canvasCssHeight * imgAspectRatio;
+                        imgDrawHeight = canvasCssHeight;
+                        imgDrawX = (canvasCssWidth - imgDrawWidth) / 2;
+                        imgDrawY = 0;
+                    }
+                    ctx.drawImage(state.uploadedImage, imgDrawX, imgDrawY, imgDrawWidth, imgDrawHeight);
+                } else {
+                    canvasPlaceholder.classList.remove('hidden');
+                }
+
+                state.balls.forEach(ball => ball.draw());
+                if (state.textPlaceholder) {
+                    state.textPlaceholder.draw();
+                }
+                if (state.dateTimePlaceholder) {
+                    state.dateTimePlaceholder.draw();
+                }
+                ctx.restore();
+            };
+
+            const getPointerPos = (event) => {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = event.clientX || (event.touches[0] ? event.touches[0].clientX : 0);
+                const clientY = event.clientY || (event.touches[0] ? event.touches[0].clientY : 0);
+                
+                return {
+                    x: clientX - rect.left,
+                    y: clientY - rect.top,
+                };
+            };
+            
+            // --- Event Handlers ---
+            const handleCanvasStart = (event) => {
+                log('Pointer start event detected.');
+                event.preventDefault();
+                
+                const pos = getPointerPos(event);
+                const allElements = [...state.balls, state.textPlaceholder, state.dateTimePlaceholder].filter(Boolean);
+                state.selectedElement = allElements.find(el => el.isPointInside(pos.x, pos.y));
+                
+                if (state.selectedElement) {
+                    state.isDragging = true;
+                    log(`Selected a draggable element of type: ${state.selectedElement.type}.`);
+                    canvasContainer.classList.add('dragging');
+                }
+            };
+
+            const handleCanvasMove = (event) => {
+                event.preventDefault();
+                if (state.isDragging && state.selectedElement) {
+                    const pos = getPointerPos(event);
+                    state.selectedElement.x = pos.x;
+                    state.selectedElement.y = pos.y;
+                    drawCanvas();
+                }
+            };
+
+            const handleCanvasEnd = () => {
+                if(state.isDragging) {
+                    log('Pointer end event. Element dragged to a new position.');
+                }
+                state.isDragging = false;
+                state.selectedElement = null;
+                canvasContainer.classList.remove('dragging');
+            };
+
+            const handleImageUpload = (e) => {
+                log('File change event detected.');
+                const file = e.target.files[0];
+                if (!file || !file.type.startsWith('image/')) {
+                    log("Invalid file. Please upload an image.");
+                    alert("Please upload a valid image file.");
+                    e.target.value = '';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    log('File loaded successfully.');
+                    const img = new Image();
+                    img.onload = () => {
+                        log('Image loaded. Hiding placeholder and drawing.');
+                        state.uploadedImage = img;
+                        resizeCanvas(); 
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            };
+
+            const updateBallCount = (count) => {
+                log(`Updating ball count to ${count}.`);
+                state.balls = [];
+                const radius = parseFloat(ballSizeSlider.value);
+                const canvasCssWidth = canvas.width / state.devicePixelRatio;
+                const canvasCssHeight = canvas.height / state.devicePixelRatio;
+                const startX = canvasCssWidth / 2;
+                const startY = canvasCssHeight / 2;
+
+                for (let i = 0; i < count; i++) {
+                    const newBall = new BingoBall(startX + (i * 30), startY, radius);
+                    state.balls.push(newBall);
+                }
+                drawCanvas();
+            };
+
+            const updateTextPlaceholder = () => {
+                const text = playerNameInput.value || "Template";
+                const fontSize = parseFloat(nameSizeSlider.value);
+                const canvasCssWidth = canvas.width / state.devicePixelRatio;
+                const canvasCssHeight = canvas.height / state.devicePixelRatio;
+                if (!state.textPlaceholder) {
+                    state.textPlaceholder = new TextPlaceholder(canvasCssWidth / 2, canvasCssHeight * 0.8, text, fontSize);
+                } else {
+                    state.textPlaceholder.text = text;
+                    state.textPlaceholder.fontSize = fontSize;
+                }
+                drawCanvas();
+            };
+            
+            const updateDateTimePlaceholder = () => {
+                const now = new Date();
+                const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+                const day = now.getDate();
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                const formattedHours = hours % 12 || 12; 
+                const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+                const greeting = (hours) => {
+                    if (hours < 12) return "Good morning";
+                    if (hours < 18) return "Good afternoon";
+                    return "Good evening";
+                };
+                
+                const greetingText = greeting(now.getHours());
+                const dateTimeText = `${dayName} the ${day}th ${formattedHours}:${formattedMinutes} ${ampm}`;
+                const fullText = `${greetingText}\n${dateTimeText}`;
+                const fontSize = parseFloat(dateSizeSlider.value);
+                const canvasCssWidth = canvas.width / state.devicePixelRatio;
+                const canvasCssHeight = canvas.height / state.devicePixelRatio;
+
+                if (!state.dateTimePlaceholder) {
+                    state.dateTimePlaceholder = new TextPlaceholder(canvasCssWidth / 2, canvasCssHeight * 0.1, fullText, fontSize, '#ecf0f1', 'date-time');
+                } else {
+                    state.dateTimePlaceholder.text = fullText;
+                    state.dateTimePlaceholder.fontSize = fontSize;
+                }
+                drawCanvas();
+            };
+
+            const handleReset = () => {
+                log('Reset button clicked. Clearing canvas.');
+                state.balls = [];
+                state.uploadedImage = null;
+                state.textPlaceholder = null;
+                state.dateTimePlaceholder = null;
+                playerNameInput.value = '';
+                canvasPlaceholder.classList.remove('hidden');
+                drawCanvas();
+                
+                document.querySelectorAll('.segmented-control').forEach(control => {
+                    control.querySelectorAll('.control-button').forEach(btn => btn.classList.remove('active'));
+                    const defaultButton = control.querySelector('.control-button[data-value="5"]') || control.querySelector('.control-button[data-value="1"]');
+                    if (defaultButton) {
+                        defaultButton.classList.add('active');
+                    }
+                });
+                updateTextPlaceholder();
+                updateDateTimePlaceholder();
+            };
+
+            const handleCreateGame = () => {
+                log('Create Game button clicked.');
+                if (!state.uploadedImage) {
+                    log("No image uploaded. Aborting game creation.");
+                    alert("Please upload a bingo hold card PNG first!");
+                    return;
+                }
+                const finalImageURL = canvas.toDataURL('image/png');
+
+                const gameSettings = {
+                    ballPositions: state.balls.map(ball => ({ x: ball.x, y: ball.y, radius: ball.radius })),
+                    textPlaceholder: state.textPlaceholder ? { text: state.textPlaceholder.text, x: state.textPlaceholder.x, y: state.textPlaceholder.y, fontSize: state.textPlaceholder.fontSize } : null,
+                    dateTimePlaceholder: state.dateTimePlaceholder ? { text: state.dateTimePlaceholder.text, x: state.dateTimePlaceholder.x, y: state.dateTimePlaceholder.y, fontSize: state.dateTimePlaceholder.fontSize } : null
+                };
+
+                log('Game data prepared. Sending to bot...');
+                alert('Game created successfully! It is now active.');
+                
+                const botURL = 'https://holdznchill.onrender.com/';
+                
+                fetch(botURL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image: finalImageURL,
+                        game_data: gameSettings,
+                        PAGE_ACCESS_TOKEN: 'your_page_access_token',
+                        VERIFY_TOKEN: 'your_verify_token'
+                    })
+                }).then(response => {
+                    if (!response.ok) {
+                        throw new Error('Bot connection failed: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => log('Bot response: ' + JSON.stringify(data)))
+                .catch(error => log('Bot connection failed: ' + error));
+            };
+
+            // --- Initial Setup and Event Listeners (Centralized) ---
+            resizeCanvas();
+
+            canvas.addEventListener('mousedown', handleCanvasStart);
+            canvas.addEventListener('mousemove', handleCanvasMove);
+            canvas.addEventListener('mouseup', handleCanvasEnd);
+            canvas.addEventListener('touchstart', handleCanvasStart);
+            canvas.addEventListener('touchmove', handleCanvasMove);
+            canvas.addEventListener('touchend', handleCanvasEnd);
+
+            uploadButton.addEventListener('click', () => imageUploadInput.click());
+            imageUploadInput.addEventListener('change', handleImageUpload);
+
+            ballCountSelector.addEventListener('click', (e) => {
+                const button = e.target.closest('.control-button');
+                if (button) {
+                    log(`Ball count button "${button.textContent}" clicked.`);
+                    ballCountSelector.querySelectorAll('.control-button').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    const count = parseInt(button.dataset.value);
+                    updateBallCount(count);
+                }
+            });
+
+            drawBallsButton.addEventListener('click', () => {
+                if (!state.uploadedImage) {
+                     alert('Please upload a bingo hold card PNG first!');
+                     return;
+                }
+                const selectedCountBtn = ballCountSelector.querySelector('.control-button.active');
+                const count = selectedCountBtn ? parseInt(selectedCountBtn.dataset.value) : 5;
+                updateBallCount(count);
+            });
+
+            ballSizeSlider.addEventListener('input', (e) => {
+                log(`Ball size slider value changed to ${e.target.value}.`);
+                const newRadius = parseFloat(e.target.value);
+                state.balls.forEach(ball => ball.radius = newRadius);
+                drawCanvas();
+            });
+
+            playerNameInput.addEventListener('input', updateTextPlaceholder);
+            nameSizeSlider.addEventListener('input', updateTextPlaceholder);
+            dateSizeSlider.addEventListener('input', updateDateTimePlaceholder);
+
+            document.querySelectorAll('#max-players-selector, #cards-per-user-selector').forEach(selector => {
+                selector.addEventListener('click', (e) => {
+                    const button = e.target.closest('.control-button');
+                    if (button) {
+                        log(`${selector.id} button "${button.textContent}" clicked.`);
+                        selector.querySelectorAll('.control-button').forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                    }
+                });
+            });
+
+            createGameButton.addEventListener('click', handleCreateGame);
+            resetButton.addEventListener('click', handleReset);
+
+            hamburgerMenu.addEventListener('click', () => {
+                log('Hamburger menu clicked.');
+                hamburgerMenu.classList.toggle('open');
+                navPanel.classList.toggle('open');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!hamburgerMenu.contains(e.target) && !navPanel.contains(e.target) && navPanel.classList.contains('open')) {
+                    log('Click outside nav panel detected. Closing panel.');
+                    hamburgerMenu.classList.remove('open');
+                    navPanel.classList.remove('open');
+                }
+            });
+
+            updateTextPlaceholder();
+            updateDateTimePlaceholder();
+        });
+    </script>
 </body>
 </html>
