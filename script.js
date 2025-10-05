@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const gameTemplate = {
             id: gameId,
             baseImage: base64Image,
-            ballPositions: balls.map(b => ({ x: b.x, y: b.y, radius: b.radius, column: b.column })),
+            ballPositions: balls.map(b => ({ x: b.x, y: b.y, radius: b.radius, number: b.number, column: b.column })),
             nameShapes: nameShapes.map(s => ({ x: s.x, y: s.y, width: s.width, height: s.height, name: s.name, color: s.color, size: s.size })),
             playerLimit: playerLimit,
             maxCardsPerPlayer: maxCardsPerPlayer
