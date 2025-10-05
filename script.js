@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const spacing = initialRadius * 2 + 10;
 
         // This is the updated logic for number distribution
-        const numPerColumn = { 3: 1, 5: 1, 10: 2, 15: 3 };
+        const numPerColumn = { '3': 1, '5': 1, '10': 2, '15': 3 };
         const numToDraw = numPerColumn[ballCount] || 1;
         const colsToUse = shuffleArray(columns.slice()).slice(0, Math.min(ballCount, columns.length));
 
@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const getMousePos = (canvas, event) => {
         const rect = imageCanvas.getBoundingClientRect();
         const scaleX = imageCanvas.width / rect.width;
-        const scaleY = imageCanvas.height / imageCanvas.height;
+        const scaleY = imageCanvas.height / rect.height;
         let clientX, clientY;
         
         if (event.touches) {
