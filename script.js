@@ -78,25 +78,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const startY = 50;
         const spacing = initialRadius * 2 + 10;
 
-        for (let i = 0; i < ballCount; i++) {
-            let number = null;
-            let column = null;
-            
-            while (number === null) {
-                const randomColumn = columns[Math.floor(Math.random() * columns.length)];
-                if (tempPools[randomColumn].length > 0) {
-                    number = getRandomNumber(tempPools[randomColumn]);
-                    column = randomColumn;
+        // This is the updated logic for number distribution
+        const numPerColumn = { 3: 1, 5: 1, 10: 2, 15: 3 };
+        const numToDraw = numPerColumn[ballCount] || 1;
+        const colsToUse = shuffleArray(columns.slice()).slice(0, Math.min(ballCount, columns.length));
+
+        let drawnCount = 0;
+        while (drawnCount < ballCount) {
+            for (const col of colsToUse) {
+                if (drawnCount >= ballCount) break;
+                if (tempPools[col].length > 0) {
+                    const number = getRandomNumber(tempPools[col]);
+                    balls.push({
+                        x: startX + (drawnCount % 5) * spacing,
+                        y: startY + Math.floor(drawnCount / 5) * spacing,
+                        radius: initialRadius,
+                        number: number,
+                        column: col,
+                        type: 'ball'
+                    });
+                    drawnCount++;
                 }
             }
-            balls.push({
-                x: startX + (i % 5) * spacing,
-                y: startY + Math.floor(i / 5) * spacing,
-                radius: initialRadius,
-                number: number,
-                column: column,
-                type: 'ball'
-            });
         }
         drawCanvas();
     });
@@ -293,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const getMousePos = (canvas, event) => {
         const rect = imageCanvas.getBoundingClientRect();
         const scaleX = imageCanvas.width / rect.width;
-        const scaleY = imageCanvas.height / rect.height;
+        const scaleY = imageCanvas.height / imageCanvas.height;
         let clientX, clientY;
         
         if (event.touches) {
