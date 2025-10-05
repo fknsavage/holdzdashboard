@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
             id: gameId,
             baseImage: base64Image,
             ballPositions: balls.map(b => ({ x: b.x, y: b.y, radius: b.radius, column: b.column })),
-            nameShapes: nameShapes.map(s => ({ x: s.x, y: s.y, width: s.width, height: s.height, color: s.color, size: s.size })),
+            nameShapes: nameShapes.map(s => ({ x: s.x, y: s.y, width: s.width, height: s.height, name: s.name, color: s.color, size: s.size })),
             playerLimit: playerLimit,
             maxCardsPerPlayer: maxCardsPerPlayer
         };
