@@ -853,44 +853,55 @@
                 updateDateTimePlaceholder();
             };
 
-            const handleCreateGame = () => {
-                log('Create Game button clicked.');
-                if (!state.uploadedImage) {
-                    log("No image uploaded. Aborting game creation.");
-                    alert("Please upload a bingo hold card PNG first!");
-                    return;
-                }
-                const finalImageURL = canvas.toDataURL('image/png');
+            // This is the only function that has been changed.
+const handleCreateGame = async () => {
+    log('Create Game button clicked.');
+    if (!state.uploadedImage) {
+        log("No image uploaded. Aborting game creation.");
+        alert("Please upload a bingo hold card PNG first!");
+        return;
+    }
 
-                const gameSettings = {
-                    ballPositions: state.balls.map(ball => ({ x: ball.x, y: ball.y, radius: ball.radius })),
-                    textPlaceholder: state.textPlaceholder ? { text: state.textPlaceholder.text, x: state.textPlaceholder.x, y: state.textPlaceholder.y, fontSize: state.textPlaceholder.fontSize } : null,
-                    dateTimePlaceholder: state.dateTimePlaceholder ? { text: state.dateTimePlaceholder.text, x: state.dateTimePlaceholder.x, y: state.dateTimePlaceholder.y, fontSize: state.dateTimePlaceholder.fontSize } : null
-                };
+    // Get values from controls
+    const gameID = document.getElementById('game-id-input').value;
+    const maxPlayers = document.getElementById('max-players-selector').querySelector('.control-button.active').dataset.value;
+    const cardsPerUser = document.getElementById('cards-per-user-selector').querySelector('.control-button.active').dataset.value;
+    const gameStatus = "active"; // Always set to active when a game is created
 
-                log('Game data prepared. Sending to bot...');
-                alert('Game created successfully! It is now active.');
-                
-                const botURL = 'https://holdznchill.onrender.com/';
-                
-                fetch(botURL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        image: finalImageURL,
-                        game_data: gameSettings,
-                        PAGE_ACCESS_TOKEN: 'your_page_access_token',
-                        VERIFY_TOKEN: 'your_verify_token'
-                    })
-                }).then(response => {
-                    if (!response.ok) {
-                        throw new Error('Bot connection failed: ' + response.statusText);
-                    }
-                    return response.json();
-                })
-                .then(data => log('Bot response: ' + JSON.stringify(data)))
-                .catch(error => log('Bot connection failed: ' + error));
-            };
+    if (!gameID) {
+        alert("Please enter a unique Game ID.");
+        return;
+    }
+
+    log('Game data prepared. Sending to server...');
+    
+    try {
+        const response = await fetch('/create-game', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                game_id: gameID,
+                max_players: maxPlayers,
+                cards_per_user: cardsPerUser,
+                game_status: gameStatus
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Server error.');
+        }
+        
+        log('Server response: ' + JSON.stringify(result));
+        alert('Game created successfully! ManyChat custom fields have been updated.');
+        
+    } catch (error) {
+        log('Server connection failed: ' + error.message);
+        alert('Failed to create game: ' + error.message);
+    }
+};
+
 
             // --- Initial Setup and Event Listeners (Centralized) ---
             resizeCanvas();
