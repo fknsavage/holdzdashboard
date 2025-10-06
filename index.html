@@ -854,54 +854,88 @@
             };
 
             // This is the only function that has been changed.
-            const handleCreateGame = async () => {
-                log('Create Game button clicked.');
-                if (!state.uploadedImage) {
-                    log("No image uploaded. Aborting game creation.");
-                    alert("Please upload a bingo hold card PNG first!");
-                    return;
-                }
+   const handleCreateGame = async () => {
+    log('Create Game button clicked.');
+    if (!state.uploadedImage) {
+        log("No image uploaded. Aborting game creation.");
+        alert("Please upload a bingo hold card PNG first!");
+        return;
+    }
 
-                // Get values from controls
-                const gameID = document.getElementById('game-id-input').value;
-                const maxPlayers = document.getElementById('max-players-selector').querySelector('.control-button.active').dataset.value;
-                const cardsPerUser = document.getElementById('cards-per-user-selector').querySelector('.control-button.active').dataset.value;
-                const gameStatus = "active"; // Always set to active when a game is created
+    // Get values from controls
+    const gameID = document.getElementById('game-id-input').value.trim();
+    const maxPlayers = document.getElementById('max-players-selector').querySelector('.control-button.active')?.dataset.value;
+    const cardsPerUser = document.getElementById('cards-per-user-selector').querySelector('.control-button.active')?.dataset.value;
+    const gameStatus = "active";
 
-                if (!gameID) {
-                    alert("Please enter a unique Game ID.");
-                    return;
-                }
+    // Validation
+    if (!gameID) {
+        alert("Please enter a unique Game ID.");
+        return;
+    }
 
-                log('Game data prepared. Sending to server...');
-                
-                try {
-                    const response = await fetch('https://holdznchill.onrender.com/create-game', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            game_id: gameID,
-                            max_players: maxPlayers,
-                            cards_per_user: cardsPerUser,
-                            game_status: gameStatus
-                        })
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (!response.ok) {
-                        throw new Error(result.message || 'Server error.');
-                    }
-                    
-                    log('Server response: ' + JSON.stringify(result));
-                    alert('Game created successfully! ManyChat custom fields have been updated.');
-                    
-                } catch (error) {
-                    log('Server connection failed: ' + error.message);
-                    alert('Failed to create game: ' + error.message);
-                }
-            };
-            
+    if (!maxPlayers || !cardsPerUser) {
+        alert("Please select max players and cards per user.");
+        return;
+    }
+
+    const payload = {
+        game_id: gameID,
+        max_players: maxPlayers,
+        cards_per_user: cardsPerUser,
+        game_status: gameStatus
+    };
+
+    log('Game data prepared: ' + JSON.stringify(payload));
+    
+    try {
+        log('Sending request to: https://holdznchill.onrender.com/create-game');
+        
+        const response = await fetch('https://holdznchill.onrender.com/create-game', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        log(`Response status: ${response.status} ${response.statusText}`);
+        log(`Response ok: ${response.ok}`);
+        
+        // Try to get response text first, then parse as JSON
+        const responseText = await response.text();
+        log('Raw response: ' + responseText);
+        
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (parseError) {
+            throw new Error(`Server returned non-JSON response: ${responseText}`);
+        }
+        
+        if (!response.ok) {
+            throw new Error(result.message || `HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        log('Game created successfully: ' + JSON.stringify(result));
+        alert('Game created successfully! ManyChat custom fields have been updated.');
+        
+    } catch (error) {
+        log('Error details: ' + error.toString());
+        
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            log('Network error detected');
+            alert('Network error: Cannot connect to server. Check if your Render service is running.');
+        } else if (error.message.includes('CORS')) {
+            log('CORS error detected');
+            alert('CORS error: Frontend domain not allowed by backend.');
+        } else {
+            alert('Failed to create game: ' + error.message);
+        }
+    }
+};
+
 
             // --- Initial Setup and Event Listeners (Centralized) ---
             resizeCanvas();
