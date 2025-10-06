@@ -2,14 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Active Games | Holdz N Chill Bingo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Active Games</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -24,6 +25,10 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
 
         body {
@@ -33,20 +38,26 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            overflow-y: auto;
         }
         
         .main-header {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            padding: 1.5rem 2rem;
+            padding: 1rem 2rem;
             border-bottom: 2px solid var(--secondary-color);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             position: relative;
             z-index: 100;
         }
         
+        .header-top {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .group-name {
             font-family: 'Montserrat', sans-serif;
             font-size: 2rem;
@@ -57,7 +68,7 @@
             cursor: pointer;
             animation: glow 2s infinite ease-in-out;
         }
-
+        
         @keyframes glow {
             0% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
             50% { text-shadow: 0 0 15px var(--hover-glow), 0 0 25px var(--hover-glow); }
@@ -82,10 +93,6 @@
             border-radius: 2px;
             transition: all 0.3s ease-in-out;
         }
-        
-        .line-1 { transform-origin: top left; }
-        .line-2 { opacity: 0; }
-        .line-3 { transform-origin: bottom left; }
         
         .hamburger-menu.open .line-1 { transform: rotate(45deg) translate(5px, 5px); }
         .hamburger-menu.open .line-2 { opacity: 0; }
@@ -127,219 +134,114 @@
             transform: translateX(5px);
         }
 
-        .page-title {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: var(--text-color);
-            text-align: center;
-            margin: 1.5rem 0;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-        }
-        
-        .game-cards-container {
+        .content-container {
+            flex: 1;
+            padding: 2rem;
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
-            padding: 0 1rem;
-        }
-        
-        .game-card {
-            background-color: var(--secondary-color);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-            position: relative;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .game-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 8px 20px rgba(0, 0, 0, 0.4), 0 0 15px var(--primary-color);
-        }
-        
-        .game-card-header {
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
         }
-        
-        .game-id {
+
+        .section-header {
             font-family: 'Montserrat', sans-serif;
-            font-size: 1.2rem;
-            font-weight: bold;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
             color: var(--primary-color);
-        }
-        
-        .status-light {
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            background-color: #2ecc71;
-            box-shadow: 0 0 10px #2ecc71;
-            animation: pulse 1.5s infinite;
-        }
-        
-        .status-light.full {
-            background-color: #e74c3c;
-            box-shadow: 0 0 10px #e74c3c;
-            animation: none;
-        }
-
-        .status-light.played {
-            background-color: #f1c40f;
-            box-shadow: 0 0 10px #f1c40f;
-            animation: none;
-        }
-        
-        .game-card-info {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.7);
-            line-height: 1.6;
-        }
-        
-        .player-list {
-            list-style: none;
-            padding: 0;
-            margin-top: 1rem;
-        }
-
-        .player-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .player-item:first-child {
-            border-top: none;
-        }
-
-        .remove-player-btn {
-            background-color: #e74c3c;
-            color: var(--text-color);
-            border: none;
-            border-radius: 5px;
-            padding: 0.2rem 0.5rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .remove-player-btn:hover {
-            background-color: #c0392b;
-        }
-
-        .end-game-btn {
-            background-color: #27ae60;
-            color: var(--text-color);
-            border: none;
-            border-radius: 5px;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            margin-top: 1rem;
-            width: 100%;
-            transition: background-color 0.2s;
-        }
-
-        .end-game-btn:hover {
-            background-color: #229954;
-        }
-
-        .end-game-btn:disabled {
-            background-color: #555;
-            cursor: not-allowed;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 200;
-            display: none;
-        }
-
-        .modal-content {
-            background-color: var(--background-color);
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            max-width: 90%;
-            max-height: 90%;
-            overflow-y: auto;
-        }
-
-        .modal-content h3 {
-            margin-bottom: 1rem;
-        }
-
-        .modal-player-card {
-            border: 2px dashed var(--primary-color);
-            margin-bottom: 1rem;
-            padding: 1rem;
-            border-radius: 8px;
             text-align: center;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
+        .game-card {
+            background-color: var(--panel-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .game-card p {
+            font-size: 1rem;
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .status-inactive {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .action-button {
+            border: none;
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+            background-color: var(--primary-color);
+            color: var(--background-color);
+        }
+
+        .action-button:hover {
+            background-color: #3b7ad1;
+            transform: translateY(-2px);
         }
     </style>
 </head>
 <body>
     <header class="main-header">
-        <h1 class="group-name">Holdz N Chill</h1>
-        <div class="hamburger-menu" id="hamburger-menu">
-            <div class="line line-1"></div>
-            <div class="line line-2"></div>
-            <div class="line line-3"></div>
-        </div>
-        <div class="nav-panel" id="nav-panel">
-            <a href="index.html" class="nav-item">Card Creation</a>
-            <a href="active_games.html" class="nav-item active">Active Games</a>
-            <a href="history.html" class="nav-item">History</a>
+        <div class="header-top">
+            <h1 class="group-name">Holdz N Chill</h1>
+            <div class="hamburger-menu" id="hamburger-menu">
+                <div class="line line-1"></div>
+                <div class="line line-2"></div>
+                <div class="line line-3"></div>
+            </div>
+            <div class="nav-panel" id="nav-panel">
+                <a href="index.html" class="nav-item">Card Creation</a>
+                <a href="active_games.html" class="nav-item active">Active Games</a>
+                <a href="history.html" class="nav-item">History</a>
+            </div>
         </div>
     </header>
 
-    <main>
-        <h2 class="page-title">Active Games</h2>
-        <div class="game-cards-container" id="game-cards-container">
-            <p style="text-align: center;">Loading games...</p>
+    <main class="content-container">
+        <h2 class="section-header">Active Games</h2>
+        <div id="game-info">
+            <p>Loading active game data...</p>
         </div>
     </main>
     
-    <div id="active-game-modal" class="modal-overlay">
-        <div class="modal-content" id="active-game-modal-content">
-            <h3>Player Cards for Game <span id="modal-game-id"></span></h3>
-            <div id="player-cards-preview"></div>
-        </div>
-    </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const hamburgerMenu = document.getElementById('hamburger-menu');
             const navPanel = document.getElementById('nav-panel');
-            const gameCardsContainer = document.getElementById('game-cards-container');
-            const activeGameModal = document.getElementById('active-game-modal');
-            const playerCardsPreview = document.getElementById('player-cards-preview');
-
-            const API_URL = 'https://holdznchill.onrender.com';
-
+            const gameInfoDiv = document.getElementById('game-info');
+            
             hamburgerMenu.addEventListener('click', () => {
                 hamburgerMenu.classList.toggle('open');
                 navPanel.classList.toggle('open');
             });
-
+            
             document.addEventListener('click', (e) => {
                 if (!hamburgerMenu.contains(e.target) && !navPanel.contains(e.target) && navPanel.classList.contains('open')) {
                     hamburgerMenu.classList.remove('open');
@@ -347,170 +249,54 @@
                 }
             });
 
-            activeGameModal.addEventListener('click', (e) => {
-                if (e.target === activeGameModal) {
-                    activeGameModal.style.display = 'none';
-                }
-            });
-
-            async function fetchActiveGames() {
+            async function fetchActiveGame() {
                 try {
-                    const response = await fetch(`${API_URL}/games`);
+                    const response = await fetch('https://holdznchill.onrender.com/active-game');
                     if (!response.ok) {
-                        throw new Error(`API call failed with status: ${response.status}`);
+                        throw new Error('Network response was not ok.');
                     }
-                    const games = await response.json();
-                    renderGameCards(games);
-                } catch (error) {
-                    console.error('Error fetching active games:', error);
-                    gameCardsContainer.innerHTML = '<p style="text-align: center; color: #e74c3c;">Failed to load games. Please check the bot API.</p>';
-                }
-            }
-
-            function renderGameCards(games) {
-                gameCardsContainer.innerHTML = '';
-                const activeGames = games.filter(g => g.status === 'active');
-
-                if (activeGames.length === 0) {
-                    gameCardsContainer.innerHTML = '<p style="text-align: center;">No active games found.</p>';
-                    return;
-                }
-
-                activeGames.forEach(game => {
-                    const playersCount = game.players.length;
-                    const isFull = playersCount >= game.maxPlayers;
-                    const statusClass = isFull ? 'full' : '';
-
-                    const playerListHtml = game.players.map(player => `
-                        <li class="player-item">
-                            <span>${player.name}</span>
-                            <button class="remove-player-btn" data-game-id="${game.id}" data-player-id="${player.id}">Remove</button>
-                        </li>
-                    `).join('');
-
-                    const endGameButton = `<button class="end-game-btn" data-game-id="${game.id}" ${playersCount === 0 ? 'disabled' : ''}>End Game</button>`;
+                    const data = await response.json();
                     
-                    const gameCardHtml = `
-                        <div class="game-card" data-game-id="${game.id}">
-                            <div class="game-card-header">
-                                <span class="game-id">Game ID: ${game.id}</span>
-                                <div class="status-light ${statusClass}"></div>
+                    if (data.gstatus === 'active') {
+                        gameInfoDiv.innerHTML = `
+                            <div class="game-card">
+                                <p><strong>Game ID:</strong> ${data.gid}</p>
+                                <p><strong>Max Players:</strong> ${data.maxp}</p>
+                                <p><strong>Cards per User:</strong> ${data.cards}</p>
+                                <p><strong>Status:</strong> <span class="status-badge status-active">Active</span></p>
                             </div>
-                            <div class="game-card-info">
-                                <p>Players: ${playersCount} / ${game.maxPlayers}</p>
-                                <p>Cards per User: ${game.cardsPerUser}</p>
-                                <p>Balls Drawn: ${game.ballsDrawn}</p>
+                            <button class="action-button" id="end-game-btn">End Game</button>
+                        `;
+                        document.getElementById('end-game-btn').addEventListener('click', () => endGame(data.gid));
+                    } else {
+                        gameInfoDiv.innerHTML = `
+                            <div class="game-card">
+                                <p>No active games are currently running.</p>
+                                <p>Start a new game on the Card Creation page!</p>
+                                <p><strong>Status:</strong> <span class="status-badge status-inactive">Inactive</span></p>
                             </div>
-                            <ul class="player-list">
-                                ${playerListHtml}
-                            </ul>
-                            ${endGameButton}
-                        </div>
-                    `;
-                    gameCardsContainer.insertAdjacentHTML('beforeend', gameCardHtml);
-                });
-
-                document.querySelectorAll('.remove-player-btn').forEach(button => {
-                    button.addEventListener('click', handleRemovePlayer);
-                });
-                document.querySelectorAll('.end-game-btn').forEach(button => {
-                    button.addEventListener('click', handleEndGame);
-                });
-                 document.querySelectorAll('.game-card').forEach(card => {
-                    card.addEventListener('click', (e) => {
-                        if (!e.target.closest('button')) {
-                            const gameId = e.currentTarget.dataset.gameId;
-                            showPlayerCardModal(gameId);
-                        }
-                    });
-                });
-            }
-
-            async function showPlayerCardModal(gameId) {
-                document.getElementById('modal-game-id').textContent = gameId;
-                playerCardsPreview.innerHTML = '<p>Loading player cards...</p>';
-                activeGameModal.style.display = 'flex';
-
-                try {
-                    const response = await fetch(`${API_URL}/games/${gameId}/cards`);
-                    const cards = await response.json();
-
-                    if (cards.length === 0) {
-                        playerCardsPreview.innerHTML = `<p>No cards found for this game yet.</p>`;
-                        return;
+                        `;
                     }
-
-                    const cardsHtml = cards.map(player => `
-                        <div class="modal-player-card">
-                            <h4>${player.name}'s Card</h4>
-                            <img src="${player.card}" alt="Card for ${player.name}" style="max-width: 100%; height: auto;"/>
-                        </div>
-                    `).join('');
-                    playerCardsPreview.innerHTML = cardsHtml;
-
                 } catch (error) {
-                    console.error('Error fetching player cards:', error);
-                    playerCardsPreview.innerHTML = `<p style="color: #e74c3c;">Failed to load player cards.</p>`;
+                    gameInfoDiv.innerHTML = `<p style="color: red;">Failed to load game data: ${error.message}</p>`;
                 }
             }
 
-            async function handleRemovePlayer(event) {
-                event.stopPropagation();
-                const button = event.target;
-                const gameId = button.dataset.gameId;
-                const playerId = button.dataset.playerId;
-
-                if (confirm(`Are you sure you want to remove player ${playerId} from game ${gameId}?`)) {
-                    try {
-                        const response = await fetch(`${API_URL}/games/${gameId}/players/${playerId}`, {
-                            method: 'DELETE',
-                        });
-
-                        if (!response.ok) {
-                            throw new Error(`Failed to remove player. Status: ${response.status}`);
-                        }
-
-                        fetchActiveGames();
-                    } catch (error) {
-                        console.error('Error removing player:', error);
-                        alert('Failed to remove player. Please check the bot API.');
-                    }
+            async function endGame(gid) {
+                try {
+                    await fetch('https://holdznchill.onrender.com/end-game', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ gid })
+                    });
+                    alert('Game has been ended and archived.');
+                    window.location.reload(); 
+                } catch (error) {
+                    alert('Failed to end game. Please try again.');
                 }
             }
 
-            async function handleEndGame(event) {
-                event.stopPropagation();
-                const button = event.target;
-                const gameId = button.dataset.gameId;
-                
-                const winnerName = prompt(`Enter the name of the winner for game ${gameId}:`);
-
-                if (!winnerName) {
-                    return;
-                }
-
-                if (confirm(`Are you sure you want to end game ${gameId} and declare ${winnerName} as the winner?`)) {
-                    try {
-                        const response = await fetch(`${API_URL}/games/${gameId}/end`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ winner: winnerName })
-                        });
-
-                        if (!response.ok) {
-                            throw new Error(`Failed to end game. Status: ${response.status}`);
-                        }
-
-                        // Redirect to history page after ending the game
-                        window.location.href = `history.html`;
-                    } catch (error) {
-                        console.error('Error ending game:', error);
-                        alert('Failed to end game. Please check the bot API.');
-                    }
-                }
-            }
-
-            fetchActiveGames();
+            fetchActiveGame();
         });
     </script>
 </body>
