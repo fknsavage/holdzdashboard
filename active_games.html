@@ -219,13 +219,9 @@
             border-top: none;
         }
         
-        .player-item button {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            padding: 0.2rem 0.5rem;
-            border-radius: 5px;
-            cursor: pointer;
+        .player-actions {
+            display: flex;
+            gap: 0.5rem;
         }
 
         .action-button {
@@ -239,6 +235,13 @@
             transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
             background-color: var(--primary-color);
             color: var(--background-color);
+        }
+        
+        .secondary-button {
+            background-color: var(--panel-color);
+            color: var(--text-color);
+            border: 2px solid var(--primary-color);
+            box-shadow: none;
         }
 
         .action-button:hover {
@@ -268,7 +271,33 @@
             max-width: 90%;
             max-height: 90%;
             overflow-y: auto;
+            position: relative;
         }
+        
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .modal-card {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            background-color: var(--panel-color);
+        }
+        
+        .modal-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            margin-top: 0.5rem;
+        }
+
     </style>
 </head>
 <body>
@@ -297,9 +326,10 @@
     
     <div id="player-cards-modal" class="modal-overlay">
         <div class="modal-content">
-            <h3>Player Cards</h3>
-            <div id="cards-container"></div>
-            <button onclick="document.getElementById('player-cards-modal').style.display='none'">Close</button>
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h3 class="section-header">Player Cards for Game <span id="modal-game-id"></span></h3>
+            <div id="modal-cards-container"></div>
+            <button class="action-button" id="download-cards-btn">Download All Cards</button>
         </div>
     </div>
     
@@ -308,6 +338,9 @@
             const hamburgerMenu = document.getElementById('hamburger-menu');
             const navPanel = document.getElementById('nav-panel');
             const gameInfoDiv = document.getElementById('game-info');
+            const playerCardsModal = document.getElementById('player-cards-modal');
+            const modalCardsContainer = document.getElementById('modal-cards-container');
+            const downloadCardsBtn = document.getElementById('download-cards-btn');
             
             const API_URL = 'https://holdznchill.onrender.com';
 
@@ -333,10 +366,10 @@
                         if (data.players && data.players.length > 0) {
                              playerListHtml = data.players.map(player => `
                                 <li class="player-item">
-                                    <span>${player.name}</span>
+                                    <span>${player.name} (${player.cards_count} cards)</span>
                                     <div class="player-actions">
-                                        <button class="view-cards-btn" data-player-psid="${player.psid}">View Cards</button>
-                                        <button class="remove-player-btn" data-player-psid="${player.psid}">Remove</button>
+                                        <button class="action-button secondary-button view-cards-btn" data-player-psid="${player.psid}" data-player-name="${player.name}">View</button>
+                                        <button class="action-button secondary-button remove-player-btn" data-player-psid="${player.psid}" data-player-name="${player.name}">Remove</button>
                                     </div>
                                 </li>
                             `).join('');
@@ -356,15 +389,17 @@
                                 <ul class="player-list">${playerListHtml}</ul>
                             </div>
                             <button class="action-button" id="end-game-btn" ${!data.players || data.players.length === 0 ? 'disabled' : ''}>End Game</button>
+                            <button class="action-button secondary-button" id="preview-cards-btn" ${!data.players || data.players.length === 0 ? 'disabled' : ''}>Preview & Download All Cards</button>
                         `;
 
                         if (data.players && data.players.length > 0) {
                             document.getElementById('end-game-btn').addEventListener('click', () => endGame(data.gid));
+                            document.getElementById('preview-cards-btn').addEventListener('click', () => openCardsModal(data.gid, data.players));
                             document.querySelectorAll('.view-cards-btn').forEach(button => {
-                                button.addEventListener('click', () => viewCards(data.gid, button.dataset.playerPsid));
+                                button.addEventListener('click', (e) => viewCards(e, data.gid, button.dataset.playerPsid, button.dataset.playerName));
                             });
                             document.querySelectorAll('.remove-player-btn').forEach(button => {
-                                button.addEventListener('click', () => removePlayer(data.gid, button.dataset.playerPsid));
+                                button.addEventListener('click', (e) => removePlayer(e, data.gid, button.dataset.playerPsid, button.dataset.playerName));
                             });
                         }
 
@@ -381,6 +416,23 @@
                     console.error('Error fetching active game data:', error);
                     gameInfoDiv.innerHTML = `<p style="color: red;">Failed to load game data: ${error.message}</p>`;
                 }
+            }
+            
+            function openCardsModal(gid, players) {
+                document.getElementById('modal-game-id').textContent = gid;
+                modalCardsContainer.innerHTML = players.map(player => `
+                    <div class="modal-card">
+                        <h4>${player.name} (${player.cards_count} cards)</h4>
+                        ${player.cards.map(cardUrl => `<img src="${cardUrl}" alt="Bingo Card for ${player.name}">`).join('')}
+                    </div>
+                `).join('');
+                
+                downloadCardsBtn.onclick = () => window.location.href = `${API_URL}/download-cards/${gid}`;
+                playerCardsModal.style.display = 'flex';
+            }
+            
+            function closeModal() {
+                playerCardsModal.style.display = 'none';
             }
 
             async function endGame(gid) {
@@ -403,8 +455,9 @@
                 }
             }
 
-            async function removePlayer(gid, psid) {
-                if (confirm('Are you sure you want to remove this player?')) {
+            async function removePlayer(e, gid, psid, playerName) {
+                e.stopPropagation();
+                if (confirm(`Are you sure you want to remove player ${playerName} from game ${gid}?`)) {
                     try {
                         const response = await fetch(`${API_URL}/remove-player/${gid}/${psid}`, {
                             method: 'DELETE'
@@ -418,9 +471,9 @@
                 }
             }
 
-            function viewCards(gid, psid) {
-                // This function will need to be implemented
-                alert('Card viewing not yet implemented.');
+            function viewCards(e, gid, psid, playerName) {
+                e.stopPropagation();
+                openCardsModal(gid, [{ psid, name: playerName, cards_count: 0, cards: [] }]);
             }
 
             fetchActiveGame();
