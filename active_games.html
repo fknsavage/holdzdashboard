@@ -390,11 +390,13 @@
                             </div>
                             <button class="action-button" id="end-game-btn" ${!data.players || data.players.length === 0 ? 'disabled' : ''}>End Game</button>
                             <button class="action-button secondary-button" id="preview-cards-btn" ${!data.players || data.players.length === 0 ? 'disabled' : ''}>Preview & Download All Cards</button>
+                            <button class="action-button" id="send-live-alert-btn">Send Live Game Alert</button>
                         `;
 
                         if (data.players && data.players.length > 0) {
                             document.getElementById('end-game-btn').addEventListener('click', () => endGame(data.gid));
                             document.getElementById('preview-cards-btn').addEventListener('click', () => openCardsModal(data.gid, data.players));
+                            document.getElementById('send-live-alert-btn').addEventListener('click', () => sendLiveAlert(data.gid));
                             document.querySelectorAll('.view-cards-btn').forEach(button => {
                                 button.addEventListener('click', (e) => viewCards(e, data.gid, button.dataset.playerPsid, button.dataset.playerName));
                             });
@@ -470,10 +472,22 @@
                     }
                 }
             }
-
-            function viewCards(e, gid, psid, playerName) {
-                e.stopPropagation();
-                openCardsModal(gid, [{ psid, name: playerName, cards_count: 0, cards: [] }]);
+            
+            async function sendLiveAlert(gid) {
+                const message = prompt('Enter the message for the live alert:');
+                if (message) {
+                    try {
+                        const response = await fetch(`${API_URL}/send-live-alert/${gid}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ message })
+                        });
+                        if (!response.ok) throw new Error('Failed to send live alert.');
+                        alert('Live alert sent successfully!');
+                    } catch (error) {
+                        alert('Failed to send live alert. Please check server logs.');
+                    }
+                }
             }
 
             fetchActiveGame();
