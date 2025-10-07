@@ -852,8 +852,8 @@
                 updateTextPlaceholder();
                 updateDateTimePlaceholder();
             };
-
-            // This is the only function that has been changed.
+            
+            // This is the updated function with intelligent error handling.
             const handleCreateGame = async () => {
                 log('Create Game button clicked.');
                 if (!state.uploadedImage) {
@@ -862,11 +862,10 @@
                     return;
                 }
 
-                // Get values from controls
                 const gameID = document.getElementById('game-id-input').value;
                 const maxPlayers = document.getElementById('max-players-selector').querySelector('.control-button.active').dataset.value;
                 const cardsPerUser = document.getElementById('cards-per-user-selector').querySelector('.control-button.active').dataset.value;
-                const gameStatus = "active"; // Always set to active when a game is created
+                const gameStatus = "active";
 
                 if (!gameID) {
                     alert("Please enter a unique Game ID.");
@@ -887,18 +886,37 @@
                         })
                     });
                     
-                    const result = await response.json();
-                    
                     if (!response.ok) {
-                        throw new Error(result.message || 'Server error.');
+                        // Attempt to parse a JSON error message from the server.
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || `Server responded with status: ${response.status}`);
                     }
+                    
+                    const result = await response.json();
                     
                     log('Server response: ' + JSON.stringify(result));
                     alert('Game created successfully! ManyChat custom fields have been updated.');
                     
                 } catch (error) {
+                    // This is the core of our Debug Intelligence.
+                    let userFacingMessage;
+                    
+                    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+                        // This handles a fundamental network error, like the server being offline or a CORS issue.
+                        userFacingMessage = 'Network error: Could not connect to the server. Is the server running?';
+                    } else if (error.message.includes('Server responded with status')) {
+                        // This handles explicit HTTP status code errors (e.g., 404 Not Found, 500 Internal Server Error).
+                        userFacingMessage = error.message;
+                    } else if (error.message.includes('SyntaxError')) {
+                        // This handles cases where the server sends back a non-JSON response when we expect JSON.
+                        userFacingMessage = 'The server sent an invalid response. Please check server logs.';
+                    } else {
+                        // A general fallback for any other unexpected errors.
+                        userFacingMessage = 'An unknown error occurred. Please check the dev logs for more details.';
+                    }
+                    
                     log('Server connection failed: ' + error.message);
-                    alert('Failed to create game: ' + error.message);
+                    alert('Failed to create game: ' + userFacingMessage);
                 }
             };
             
