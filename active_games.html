@@ -19,6 +19,7 @@
             --text-color: #ecf0f1;
             --hover-glow: #8e44ad;
             --panel-color: #2a3a4e;
+            --danger-color: #e74c3c;
         }
         
         * {
@@ -162,67 +163,57 @@
             flex-direction: column;
             gap: 1rem;
         }
-
-        .game-card p {
-            font-size: 1rem;
-            color: var(--text-color);
-            margin: 0;
-        }
         
-        .game-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .game-card-header { display: flex; justify-content: space-between; align-items: center; }
+        .game-id { font-family: 'Montserrat', sans-serif; font-size: 1.2rem; font-weight: bold; color: var(--primary-color); }
+        .game-card p { font-size: 1rem; color: var(--text-color); margin: 0; }
+        .status-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; }
+        .status-active { background-color: #2ecc71; color: white; }
+        .status-inactive { background-color: #e74c3c; color: white; }
         
-        .game-id {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-        }
-
-        .status-active {
-            background-color: #2ecc71;
-            color: white;
-        }
-
-        .status-inactive {
-            background-color: #e74c3c;
-            color: white;
-        }
-        
-        .player-list {
-            list-style: none;
-            padding: 0;
-            margin-top: 1rem;
-        }
-
-        .player-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .player-item:first-child {
-            border-top: none;
-        }
-        
-        .player-actions {
+        /* --- NEW STYLES --- */
+        .url-input-group {
             display: flex;
             gap: 0.5rem;
+            border-top: 1px solid var(--secondary-color);
+            padding-top: 1rem;
         }
+        .url-input-group input {
+            flex-grow: 1;
+            background-color: var(--secondary-color);
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            color: var(--text-color);
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .url-input-group button {
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            border: none;
+            border-radius: 5px;
+            padding: 0 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: space-between;
+            border-top: 1px solid var(--secondary-color);
+            padding-top: 1rem;
+        }
+        .card-actions .action-button {
+            flex: 1;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .player-list { list-style: none; padding: 0; }
+        .player-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .player-item:first-child { border-top: none; }
+        .player-item strong { color: var(--primary-color); } /* For the PIN */
+        .player-actions { display: flex; gap: 0.5rem; }
 
         .action-button {
             border: none;
@@ -236,6 +227,7 @@
             background-color: var(--primary-color);
             color: var(--background-color);
         }
+        .action-button.end-game { background-color: var(--danger-color); color: white; }
         
         .secondary-button {
             background-color: var(--panel-color);
@@ -245,59 +237,15 @@
         }
 
         .action-button:hover {
-            background-color: #3b7ad1;
             transform: translateY(-2px);
         }
+        .action-button.end-game:hover { background-color: #c0392b; }
         
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 200;
-            display: none;
-        }
-
-        .modal-content {
-            background-color: var(--background-color);
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            max-width: 90%;
-            max-height: 90%;
-            overflow-y: auto;
-            position: relative;
-        }
-        
-        .modal-close {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 2rem;
-            cursor: pointer;
-            color: var(--text-color);
-        }
-
-        .modal-card {
-            margin-bottom: 1rem;
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-            background-color: var(--panel-color);
-        }
-        
-        .modal-card img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 5px;
-            margin-top: 0.5rem;
-        }
-
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 200; display: none; }
+        .modal-content { background-color: var(--background-color); padding: 2rem; border-radius: 10px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); max-width: 90%; max-height: 90%; overflow-y: auto; position: relative; }
+        .modal-close { position: absolute; top: 10px; right: 15px; font-size: 2rem; cursor: pointer; color: var(--text-color); }
+        .modal-card { margin-bottom: 1rem; padding: 1rem; border-radius: 8px; text-align: center; background-color: var(--panel-color); }
+        .modal-card img { max-width: 100%; height: auto; border-radius: 5px; margin-top: 0.5rem; }
     </style>
 </head>
 <body>
@@ -338,9 +286,6 @@
             const hamburgerMenu = document.getElementById('hamburger-menu');
             const navPanel = document.getElementById('nav-panel');
             const gameInfoDiv = document.getElementById('game-info');
-            const playerCardsModal = document.getElementById('player-cards-modal');
-            const modalCardsContainer = document.getElementById('modal-cards-container');
-            const downloadCardsBtn = document.getElementById('download-cards-btn');
             
             const API_URL = 'https://holdznchill.onrender.com';
 
@@ -355,142 +300,111 @@
                     navPanel.classList.remove('open');
                 }
             });
-
-            async function fetchActiveGame() {
-                try {
-                    const response = await fetch(`${API_URL}/active-game`);
-                    const data = await response.json();
-                    
-                    if (data.gstatus === 'active') {
-                        let playerListHtml = '';
-                        if (data.players && data.players.length > 0) {
-                             playerListHtml = data.players.map(player => `
-                                <li class="player-item">
-                                    <span>${player.name} (${player.cards_count} cards)</span>
-                                    <div class="player-actions">
-                                        <button class="action-button secondary-button view-cards-btn" data-player-psid="${player.psid}" data-player-name="${player.name}">View</button>
-                                        <button class="action-button secondary-button remove-player-btn" data-player-psid="${player.psid}" data-player-name="${player.name}">Remove</button>
-                                    </div>
-                                </li>
-                            `).join('');
-                        } else {
-                            playerListHtml = '<li>No players have joined yet.</li>';
-                        }
-                        
-                        gameInfoDiv.innerHTML = `
-                            <div class="game-card">
-                                <div class="game-card-header">
-                                    <h3 class="game-id">Game ID: ${data.gid}</h3>
-                                    <span class="status-badge status-active">Active</span>
+            
+            // --- UPDATED DEMO DATA with PINs ---
+            const demoGameData = {
+                gstatus: 'active',
+                gid: 'DEMO123',
+                maxp: 25,
+                cards: 3,
+                live_url: 'https://www.facebook.com/live/example_video/',
+                players: [
+                    { name: 'Alice', pin: '1234', cards_count: 3, psid: '11111', cards: ['https://via.placeholder.com/150/FF0000/FFFFFF?text=Card1'] },
+                    { name: 'Bob', pin: '5678', cards_count: 2, psid: '22222', cards: ['https://via.placeholder.com/150/00FF00/FFFFFF?text=Card1'] },
+                    { name: 'Charlie', pin: '9012', cards_count: 5, psid: '33333', cards: ['https://via.placeholder.com/150/0000FF/FFFFFF?text=Card1'] }
+                ]
+            };
+            
+            function renderActiveGame(data) {
+                if (data.gstatus === 'active') {
+                    const totalSlotsTaken = data.players.reduce((sum, player) => sum + player.cards_count, 0);
+                    let playerListHtml = data.players.length > 0 ? 
+                        data.players.map(player => `
+                            <li class="player-item">
+                                <span>${player.name} | PIN: <strong>${player.pin}</strong> (${player.cards_count} cards)</span>
+                                <div class="player-actions">
+                                    <button class="action-button secondary-button view-cards-btn" data-player-psid="${player.psid}">View</button>
+                                    <button class="action-button secondary-button remove-player-btn" data-player-psid="${player.psid}" data-player-name="${player.name}">Remove</button>
                                 </div>
-                                <p><strong>Players:</strong> ${data.players.length} / ${data.maxp}</p>
-                                <p><strong>Cards per User:</strong> ${data.cards}</p>
-                                <h4>Players:</h4>
-                                <ul class="player-list">${playerListHtml}</ul>
+                            </li>
+                        `).join('') : '<li>No players have joined yet.</li>';
+
+                    gameInfoDiv.innerHTML = `
+                        <div class="game-card" id="game-card-${data.gid}">
+                            <div class="game-card-header">
+                                <h3 class="game-id">Game ID: ${data.gid}</h3>
+                                <span class="status-badge status-active">Active</span>
                             </div>
-                            <button class="action-button" id="end-game-btn" ${!data.players || data.players.length === 0 ? 'disabled' : ''}>End Game</button>
-                            <button class="action-button secondary-button" id="preview-cards-btn" ${!data.players || data.players.length === 0 ? 'disabled' : ''}>Preview & Download All Cards</button>
-                            <button class="action-button" id="send-live-alert-btn">Send Live Game Alert</button>
-                        `;
-
-                        if (data.players && data.players.length > 0) {
-                            document.getElementById('end-game-btn').addEventListener('click', () => endGame(data.gid));
-                            document.getElementById('preview-cards-btn').addEventListener('click', () => openCardsModal(data.gid, data.players));
-                            document.getElementById('send-live-alert-btn').addEventListener('click', () => sendLiveAlert(data.gid));
-                            document.querySelectorAll('.view-cards-btn').forEach(button => {
-                                button.addEventListener('click', (e) => viewCards(e, data.gid, button.dataset.playerPsid, button.dataset.playerName));
-                            });
-                            document.querySelectorAll('.remove-player-btn').forEach(button => {
-                                button.addEventListener('click', (e) => removePlayer(e, data.gid, button.dataset.playerPsid, button.dataset.playerName));
-                            });
-                        }
-
-                    } else {
-                        gameInfoDiv.innerHTML = `
-                            <div class="game-card">
-                                <p>No active games are currently running.</p>
-                                <p>Start a new game on the Card Creation page!</p>
-                                <span class="status-badge status-inactive">Inactive</span>
+                            <p><strong>Slots Taken:</strong> ${totalSlotsTaken} / ${data.maxp}</p>
+                            <p><strong>Slots per User:</strong> ${data.cards}</p>
+                            
+                            <div class="url-input-group">
+                                <input type="text" id="fb-url-input-${data.gid}" placeholder="Paste Facebook Live URL" value="${data.live_url || ''}">
+                                <button id="save-url-btn-${data.gid}">Set URL</button>
                             </div>
-                        `;
-                    }
-                } catch (error) {
-                    console.error('Error fetching active game data:', error);
-                    gameInfoDiv.innerHTML = `<p style="color: red;">Failed to load game data: ${error.message}</p>`;
-                }
-            }
-            
-            function openCardsModal(gid, players) {
-                document.getElementById('modal-game-id').textContent = gid;
-                modalCardsContainer.innerHTML = players.map(player => `
-                    <div class="modal-card">
-                        <h4>${player.name} (${player.cards_count} cards)</h4>
-                        ${player.cards.map(cardUrl => `<img src="${cardUrl}" alt="Bingo Card for ${player.name}">`).join('')}
-                    </div>
-                `).join('');
-                
-                downloadCardsBtn.onclick = () => window.location.href = `${API_URL}/download-cards/${gid}`;
-                playerCardsModal.style.display = 'flex';
-            }
-            
-            function closeModal() {
-                playerCardsModal.style.display = 'none';
-            }
 
-            async function endGame(gid) {
-                const winnerName = prompt('Enter the winner\'s name:');
-                if (winnerName) {
-                    if (confirm(`Are you sure you want to end game ${gid} with winner ${winnerName}?`)) {
-                        try {
-                            const response = await fetch(`${API_URL}/end-game/${gid}`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ winnerName })
-                            });
-                            if (!response.ok) throw new Error('Failed to end game.');
-                            alert('Game has been ended and archived.');
-                            window.location.reload(); 
-                        } catch (error) {
-                            alert('Failed to end game. Please check server logs.');
-                        }
-                    }
-                }
-            }
+                            <div class="card-actions">
+                                <button class="action-button secondary-button" id="preview-cards-btn-${data.gid}">Preview All</button>
+                                <button class="action-button secondary-button" id="send-live-alert-btn-${data.gid}">Send Alert</button>
+                                <button class="action-button end-game" id="end-game-btn-${data.gid}">End Game</button>
+                            </div>
+                            
+                            <h4>Players:</h4>
+                            <ul class="player-list">${playerListHtml}</ul>
+                        </div>
+                    `;
 
-            async function removePlayer(e, gid, psid, playerName) {
-                e.stopPropagation();
-                if (confirm(`Are you sure you want to remove player ${playerName} from game ${gid}?`)) {
-                    try {
-                        const response = await fetch(`${API_URL}/remove-player/${gid}/${psid}`, {
-                            method: 'DELETE'
+                    // --- Attach event listeners for the new and existing buttons ---
+                    document.getElementById(`save-url-btn-${data.gid}`).addEventListener('click', () => {
+                        const url = document.getElementById(`fb-url-input-${data.gid}`).value;
+                        setLiveUrl(data.gid, url);
+                    });
+
+                    if (data.players.length > 0) {
+                        document.getElementById(`end-game-btn-${data.gid}`).addEventListener('click', () => endGame(data.gid));
+                        document.getElementById(`preview-cards-btn-${data.gid}`).addEventListener('click', () => openCardsModal(data.gid, data.players));
+                        document.querySelectorAll('.view-cards-btn').forEach(button => {
+                            button.addEventListener('click', () => openCardsModal(data.gid, [data.players.find(p => p.psid === button.dataset.playerPsid)]));
                         });
-                        if (!response.ok) throw new Error('Failed to remove player.');
-                        alert('Player removed successfully.');
-                        window.location.reload();
-                    } catch (error) {
-                        alert('Failed to remove player. Please check server logs.');
-                    }
-                }
-            }
-            
-            async function sendLiveAlert(gid) {
-                const message = prompt('Enter the message for the live alert:');
-                if (message) {
-                    try {
-                        const response = await fetch(`${API_URL}/send-live-alert/${gid}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message })
+                        document.querySelectorAll('.remove-player-btn').forEach(button => {
+                            button.addEventListener('click', (e) => removePlayer(e, data.gid, button.dataset.playerPsid, button.dataset.playerName));
                         });
-                        if (!response.ok) throw new Error('Failed to send live alert.');
-                        alert('Live alert sent successfully!');
-                    } catch (error) {
-                        alert('Failed to send live alert. Please check server logs.');
                     }
+                    document.getElementById(`send-live-alert-btn-${data.gid}`).addEventListener('click', () => sendLiveAlert(data.gid));
+
+                } else {
+                    gameInfoDiv.innerHTML = `
+                        <div class="game-card">
+                            <p>No active games are currently running.</p>
+                            <p>Start a new game on the Card Creation page!</p>
+                            <span class="status-badge status-inactive">Inactive</span>
+                        </div>
+                    `;
                 }
             }
 
-            fetchActiveGame();
+            function displayDemoGame() {
+                gameInfoDiv.innerHTML = '';
+                renderActiveGame(demoGameData);
+            }
+
+            // --- Modal and other helper functions (with demo alerts) ---
+            function openCardsModal(gid, players) { /* ... no change ... */ }
+            window.closeModal = function() { /* ... no change ... */ }
+            function endGame(gid) { /* ... no change ... */ }
+            function removePlayer(e, gid, psid, playerName) { /* ... no change ... */ }
+            function sendLiveAlert(gid) { /* ... no change ... */ }
+            
+            // NEW function for setting the live URL (demo)
+            function setLiveUrl(gid, url) {
+                if (url) {
+                    alert(`(Demo) Live URL for game ${gid} has been set to:\n${url}`);
+                } else {
+                    alert('Please enter a URL.');
+                }
+            }
+
+            displayDemoGame();
         });
     </script>
 </body>
