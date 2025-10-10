@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalCloseBtn = document.getElementById('modal-close-btn');
     const API_URL = 'https://holdznchill.onrender.com';
 
-    // Guard clause for pages without game-info div
     if (!gameInfoDiv) return;
 
     function renderActiveGame(data) {
@@ -131,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function closeModal() {
-        playerCardsModal.hidden = true;
+        if (playerCardsModal) playerCardsModal.hidden = true;
     }
     modalCloseBtn?.addEventListener('click', closeModal);
     playerCardsModal?.addEventListener('click', (e) => {
