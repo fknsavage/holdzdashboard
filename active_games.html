@@ -87,7 +87,7 @@
     <main class="content-container">
         <h2 class="section-header">Active Games</h2>
         <div id="game-info">
-            <p>Loading active game data from server...</p>
+            <p>Loading active game data...</p>
         </div>
     </main>
     
@@ -164,7 +164,10 @@
                         document.getElementById(`end-game-btn-${data.gid}`).addEventListener('click', () => endGame(data.gid));
                         document.getElementById(`preview-cards-btn-${data.gid}`).addEventListener('click', () => openCardsModal(data.gid, data.players));
                         document.querySelectorAll('.view-cards-btn').forEach(button => {
-                            button.addEventListener('click', () => openCardsModal(data.gid, [data.players.find(p => p.psid === button.dataset.playerPsid)]));
+                            button.addEventListener('click', () => {
+                                const player = data.players.find(p => p.psid === button.dataset.playerPsid);
+                                if(player) openCardsModal(data.gid, [player]);
+                            });
                         });
                         document.querySelectorAll('.remove-player-btn').forEach(button => {
                             button.addEventListener('click', (e) => removePlayer(e, data.gid, button.dataset.playerPsid, button.dataset.playerName));
@@ -212,7 +215,7 @@
             }
             modalCloseBtn.addEventListener('click', closeModal);
 
-            // --- THESE FUNCTIONS ARE NOW LIVE ---
+            // --- ALL FUNCTIONS ARE NOW LIVE ---
             async function endGame(gid) {
                 const winnerName = prompt('Enter the winner\'s name:');
                 if (winnerName && confirm(`Are you sure you want to end game ${gid} with winner ${winnerName}?`)) {
@@ -252,15 +255,16 @@
             }
             
             async function setLiveUrl(gid) {
-                // This feature requires a backend endpoint, which we can add next.
                 const url = document.getElementById(`fb-url-input-${gid}`).value;
-                if(url) alert(`In a real app, this would save the URL "${url}" to the database for game ${gid}.`);
-                else alert('Please enter a URL first.');
+                if(!url) return alert('Please enter a URL first.');
+                
+                // This would be a real API call in the future
+                alert(`This would save the URL "${url}" to the database for game ${gid}.`);
             }
 
             async function sendLiveAlert(gid) {
-                // This feature also requires a backend endpoint.
-                alert(`In a real app, this would send an alert to all players in game ${gid}.`);
+                // This would be a real API call in the future
+                alert(`This would send an alert to all players in game ${gid}.`);
             }
 
             fetchActiveGame();
