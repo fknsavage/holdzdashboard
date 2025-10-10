@@ -2,254 +2,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Game History</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game History | Holdz N Chill</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <style>
-        :root {
-            --primary-color: #4a90e2;
-            --secondary-color: #2c3e50;
-            --background-color: #1a1a2e;
-            --text-color: #ecf0f1;
-            --hover-glow: #8e44ad;
-            --panel-color: #2a3a4e;
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        
-        .main-header {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 1rem 2rem;
-            border-bottom: 2px solid var(--secondary-color);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            position: relative;
-            z-index: 100;
-        }
-        
-        .header-top {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .group-name {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--text-color);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
-            animation: glow 2s infinite ease-in-out;
-        }
-        
-        @keyframes glow {
-            0% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-            50% { text-shadow: 0 0 15px var(--hover-glow), 0 0 25px var(--hover-glow); }
-            100% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-        }
-        
-        .hamburger-menu {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            width: 30px;
-            height: 20px;
-            cursor: pointer;
-            transition: transform 0.3s ease-in-out;
-        }
-        
-        .line {
-            width: 100%;
-            height: 3px;
-            background-color: var(--primary-color);
-            border-radius: 2px;
-            transition: all 0.3s ease-in-out;
-        }
-        
-        .hamburger-menu.open .line-1 { transform: rotate(45deg) translate(5px, 5px); }
-        .hamburger-menu.open .line-2 { opacity: 0; }
-        .hamburger-menu.open .line-3 { transform: rotate(-45deg) translate(5px, -5px); }
-        
-        .nav-panel {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            width: 250px;
-            background-color: var(--panel-color);
-            border-radius: 0 0 10px 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-            transform: translateY(-100%) scaleY(0);
-            transform-origin: top;
-            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            padding: 1rem 0;
-            opacity: 0;
-            visibility: hidden;
-        }
-        
-        .nav-panel.open {
-            transform: translateY(0) scaleY(1);
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .nav-item {
-            display: block;
-            padding: 0.75rem 2rem;
-            color: var(--text-color);
-            text-decoration: none;
-            font-size: 1.1rem;
-            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
-        }
-        
-        .nav-item:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            transform: translateX(5px);
-        }
-
-        .content-container {
-            flex: 1;
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .section-header {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: var(--primary-color);
-            text-align: center;
-        }
-
-        .history-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .history-item {
-            background-color: var(--panel-color);
-            border-radius: 10px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .history-item p {
-            font-size: 1rem;
-            color: var(--text-color);
-            margin: 0 0 0.5rem;
-        }
-
-        .history-item strong {
-            color: var(--primary-color);
-        }
-        
-    </style>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <header class="main-header">
         <div class="header-top">
-            <h1 class="group-name">Holdz N Chill</h1>
-            <div class="hamburger-menu" id="hamburger-menu">
-                <div class="line line-1"></div>
-                <div class="line line-2"></div>
-                <div class="line line-3"></div>
-            </div>
-            <div class="nav-panel" id="nav-panel">
+            <a href="index.html" class="group-name-link"><h1 class="group-name">Holdz N Chill</h1></a>
+            <button class="hamburger-menu" id="hamburger-menu" aria-controls="nav-panel" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="line line-1"></span>
+                <span class="line line-2"></span>
+                <span class="line line-3"></span>
+            </button>
+            <nav class="nav-panel" id="nav-panel">
                 <a href="index.html" class="nav-item">Card Creation</a>
                 <a href="active_games.html" class="nav-item">Active Games</a>
-                <a href="history.html" class="nav-item active">History</a>
-            </div>
+                <a href="history.html" class="nav-item active" aria-current="page">History</a>
+            </nav>
         </div>
     </header>
 
-    <main class="content-container">
+    <main id="main-content" class="content-container">
         <h2 class="section-header">Game History</h2>
         <div id="history-list" class="history-list">
-            <p>Loading game history...</p>
+            <p class="loading-message">Loading game history...</p>
         </div>
     </main>
     
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const hamburgerMenu = document.getElementById('hamburger-menu');
-            const navPanel = document.getElementById('nav-panel');
-            const historyListDiv = document.getElementById('history-list');
-            
-            const API_URL = 'https://holdznchill.onrender.com';
-
-            hamburgerMenu.addEventListener('click', () => {
-                hamburgerMenu.classList.toggle('open');
-                navPanel.classList.toggle('open');
-            });
-            
-            document.addEventListener('click', (e) => {
-                if (!hamburgerMenu.contains(e.target) && !navPanel.contains(e.target) && navPanel.classList.contains('open')) {
-                    hamburgerMenu.classList.remove('open');
-                    navPanel.classList.remove('open');
-                }
-            });
-
-            async function fetchHistory() {
-                try {
-                    const response = await fetch(`${API_URL}/history`);
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok.');
-                    }
-                    const history = await response.json();
-                    
-                    if (history.length === 0) {
-                        historyListDiv.innerHTML = `<p>No games in history yet.</p>`;
-                        return;
-                    }
-                    
-                    historyListDiv.innerHTML = history.reverse().map(game => `
-                        <div class="history-item">
-                            <p><strong>Game ID:</strong> ${game.gid}</p>
-                            <p><strong>Winner:</strong> ${game.winner}</p>
-                            <p><strong>Ended:</strong> ${new Date(game.endedAt).toLocaleString()}</p>
-                        </div>
-                    `).join('');
-
-                } catch (error) {
-                    console.error('Error fetching history:', error);
-                    historyListDiv.innerHTML = `<p style="color: red;">Failed to load history: ${error.message}</p>`;
-                }
-            }
-
-            fetchHistory();
-        });
-    </script>
+    <script src="js/main.js" defer></script>
+    <script src="js/history.js" defer></script>
 </body>
 </html>
