@@ -124,7 +124,7 @@
 
             function renderActiveGame(data) {
                 if (data.gstatus === 'active') {
-                    const totalSlotsTaken = data.players.reduce((sum, player) => sum + (player.cards_count || 0), 0);
+                    const totalSlotsTaken = (data.players || []).reduce((sum, player) => sum + (player.cards_count || 0), 0);
                     let playerListHtml = data.players && data.players.length > 0 ? 
                         data.players.map(player => `
                             <li class="player-item">
@@ -212,7 +212,7 @@
             }
             modalCloseBtn.addEventListener('click', closeModal);
 
-            // --- UPDATED FUNCTIONS TO BE LIVE ---
+            // --- THESE FUNCTIONS ARE NOW LIVE ---
             async function endGame(gid) {
                 const winnerName = prompt('Enter the winner\'s name:');
                 if (winnerName && confirm(`Are you sure you want to end game ${gid} with winner ${winnerName}?`)) {
