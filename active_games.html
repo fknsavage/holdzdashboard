@@ -87,7 +87,7 @@
     <main class="content-container">
         <h2 class="section-header">Active Games</h2>
         <div id="game-info">
-            <p>Loading active game data...</p>
+            <p>Loading active game data from server...</p>
         </div>
     </main>
     
@@ -170,7 +170,6 @@
                             button.addEventListener('click', (e) => removePlayer(e, data.gid, button.dataset.playerPsid, button.dataset.playerName));
                         });
                     }
-                    // This button should always be active
                     document.getElementById(`send-live-alert-btn-${data.gid}`).addEventListener('click', () => sendLiveAlert(data.gid));
                 } else {
                     gameInfoDiv.innerHTML = `
@@ -213,16 +212,20 @@
             }
             modalCloseBtn.addEventListener('click', closeModal);
 
+            // --- UPDATED FUNCTIONS TO BE LIVE ---
             async function endGame(gid) {
                 const winnerName = prompt('Enter the winner\'s name:');
-                if (winnerName && confirm(`End game ${gid} with winner ${winnerName}?`)) {
+                if (winnerName && confirm(`Are you sure you want to end game ${gid} with winner ${winnerName}?`)) {
                     try {
                         const response = await fetch(`${API_URL}/end-game/${gid}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ winnerName })
                         });
-                        if (!response.ok) throw new Error('Failed to end game.');
+                        if (!response.ok) {
+                            const err = await response.json();
+                            throw new Error(err.message || 'Failed to end game.');
+                        }
                         alert('Game has been ended and archived.');
                         window.location.reload(); 
                     } catch (error) {
@@ -233,10 +236,13 @@
 
             async function removePlayer(e, gid, psid, playerName) {
                 e.stopPropagation();
-                if (confirm(`Remove player ${playerName} from game ${gid}?`)) {
+                if (confirm(`Are you sure you want to remove player ${playerName} from game ${gid}?`)) {
                     try {
                         const response = await fetch(`${API_URL}/remove-player/${gid}/${psid}`, { method: 'DELETE' });
-                        if (!response.ok) throw new Error('Failed to remove player.');
+                        if (!response.ok) {
+                             const err = await response.json();
+                            throw new Error(err.message || 'Failed to remove player.');
+                        }
                         alert('Player removed successfully.');
                         window.location.reload();
                     } catch (error) {
@@ -246,14 +252,15 @@
             }
             
             async function setLiveUrl(gid) {
+                // This feature requires a backend endpoint, which we can add next.
                 const url = document.getElementById(`fb-url-input-${gid}`).value;
-                if(url) alert(`(Demo) In a real app, this would save the URL "${url}" to the database for game ${gid}.`);
+                if(url) alert(`In a real app, this would save the URL "${url}" to the database for game ${gid}.`);
                 else alert('Please enter a URL first.');
             }
 
             async function sendLiveAlert(gid) {
-                // This would call a backend endpoint to message all players
-                alert(`(Demo) In a real app, this would send an alert to all players in game ${gid}.`);
+                // This feature also requires a backend endpoint.
+                alert(`In a real app, this would send an alert to all players in game ${gid}.`);
             }
 
             fetchActiveGame();
