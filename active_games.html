@@ -21,21 +21,20 @@
             --panel-color: #2a3a4e;
             --danger-color: #e74c3c;
         }
-        
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
         body { font-family: 'Roboto', sans-serif; background-color: var(--background-color); color: var(--text-color); display: flex; flex-direction: column; min-height: 100vh; }
         .main-header { display: flex; flex-direction: column; align-items: center; padding: 1rem 2rem; border-bottom: 2px solid var(--secondary-color); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); position: relative; z-index: 100; }
         .header-top { width: 100%; display: flex; justify-content: space-between; align-items: center; }
-        .group-name { font-family: 'Montserrat', sans-serif; font-size: 2rem; font-weight: 700; color: var(--text-color); text-transform: uppercase; letter-spacing: 2px; cursor: pointer; animation: glow 2s infinite ease-in-out; }
+        .group-name { font-family: 'Montserrat', sans-serif; font-size: 2rem; font-weight: 700; color: var(--text-color); text-transform: uppercase; letter-spacing: 2px; animation: glow 2s infinite ease-in-out; }
         @keyframes glow { 0% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); } 50% { text-shadow: 0 0 15px var(--hover-glow), 0 0 25px var(--hover-glow); } 100% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); } }
-        .hamburger-menu { position: relative; display: flex; flex-direction: column; justify-content: space-between; width: 30px; height: 20px; cursor: pointer; transition: transform 0.3s ease-in-out; }
+        .hamburger-menu { position: relative; display: flex; flex-direction: column; justify-content: space-between; width: 30px; height: 20px; cursor: pointer; }
         .line { width: 100%; height: 3px; background-color: var(--primary-color); border-radius: 2px; transition: all 0.3s ease-in-out; }
         .hamburger-menu.open .line-1 { transform: rotate(45deg) translate(5px, 5px); }
         .hamburger-menu.open .line-2 { opacity: 0; }
         .hamburger-menu.open .line-3 { transform: rotate(-45deg) translate(5px, -5px); }
         .nav-panel { position: absolute; top: 100%; right: 0; width: 250px; background-color: var(--panel-color); border-radius: 0 0 10px 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); transform: translateY(-100%) scaleY(0); transform-origin: top; transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); padding: 1rem 0; opacity: 0; visibility: hidden; }
         .nav-panel.open { transform: translateY(0) scaleY(1); opacity: 1; visibility: visible; }
-        .nav-item { display: block; padding: 0.75rem 2rem; color: var(--text-color); text-decoration: none; font-size: 1.1rem; transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out; }
+        .nav-item { display: block; padding: 0.75rem 2rem; color: var(--text-color); text-decoration: none; font-size: 1.1rem; transition: background-color 0.2s, transform 0.2s; }
         .nav-item:hover { background-color: rgba(255, 255, 255, 0.1); transform: translateX(5px); }
         .content-container { flex: 1; padding: 2rem; display: flex; flex-direction: column; align-items: center; }
         .section-header { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; margin-bottom: 1rem; color: var(--primary-color); text-align: center; }
@@ -56,7 +55,7 @@
         .player-item:first-child { border-top: none; }
         .player-item strong { color: var(--primary-color); }
         .player-actions { display: flex; gap: 0.5rem; }
-        .action-button { border: none; border-radius: 50px; padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out; background-color: var(--primary-color); color: var(--background-color); }
+        .action-button { border: none; border-radius: 50px; padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); transition: background-color 0.3s, transform 0.2s; background-color: var(--primary-color); color: var(--background-color); }
         .action-button.end-game { background-color: var(--danger-color); color: white; }
         .secondary-button { background-color: var(--panel-color); color: var(--text-color); border: 2px solid var(--primary-color); box-shadow: none; }
         .action-button:hover { transform: translateY(-2px); }
@@ -88,7 +87,7 @@
     <main class="content-container">
         <h2 class="section-header">Active Games</h2>
         <div id="game-info">
-            <p>Initializing...</p>
+            <p>Loading active game data...</p>
         </div>
     </main>
     
@@ -125,8 +124,8 @@
 
             function renderActiveGame(data) {
                 if (data.gstatus === 'active') {
-                    const totalSlotsTaken = data.players.reduce((sum, player) => (sum + player.cards_count), 0);
-                    let playerListHtml = data.players.length > 0 ? 
+                    const totalSlotsTaken = data.players.reduce((sum, player) => sum + (player.cards_count || 0), 0);
+                    let playerListHtml = data.players && data.players.length > 0 ? 
                         data.players.map(player => `
                             <li class="player-item">
                                 <span>${player.name} | PIN: <strong>${player.pin}</strong> (${player.cards_count} cards)</span>
@@ -159,12 +158,9 @@
                         </div>
                     `;
 
-                    document.getElementById(`save-url-btn-${data.gid}`).addEventListener('click', () => {
-                        const url = document.getElementById(`fb-url-input-${data.gid}`).value;
-                        setLiveUrl(data.gid, url);
-                    });
-
-                    if (data.players.length > 0) {
+                    document.getElementById(`save-url-btn-${data.gid}`).addEventListener('click', () => setLiveUrl(data.gid));
+                    
+                    if (data.players && data.players.length > 0) {
                         document.getElementById(`end-game-btn-${data.gid}`).addEventListener('click', () => endGame(data.gid));
                         document.getElementById(`preview-cards-btn-${data.gid}`).addEventListener('click', () => openCardsModal(data.gid, data.players));
                         document.querySelectorAll('.view-cards-btn').forEach(button => {
@@ -174,6 +170,7 @@
                             button.addEventListener('click', (e) => removePlayer(e, data.gid, button.dataset.playerPsid, button.dataset.playerName));
                         });
                     }
+                    // This button should always be active
                     document.getElementById(`send-live-alert-btn-${data.gid}`).addEventListener('click', () => sendLiveAlert(data.gid));
                 } else {
                     gameInfoDiv.innerHTML = `
@@ -186,25 +183,14 @@
                 }
             }
 
-            async function fetchActiveGameWithDebug() {
-                gameInfoDiv.innerHTML = `<p><strong>Status:</strong> Connecting to server...</p>`;
-                const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Request timed out. The server is likely waking up from sleep. Please wait about a minute and refresh the page.')), 25000)
-                );
+            async function fetchActiveGame() {
                 try {
-                    const response = await Promise.race([
-                        fetch(`${API_URL}/active-game`),
-                        timeoutPromise
-                    ]);
-                    if (!response.ok) {
-                        throw new Error(`Server connection failed with status: ${response.status}`);
-                    }
+                    const response = await fetch(`${API_URL}/active-game`);
+                    if (!response.ok) throw new Error(`Server Error: ${response.status}`);
                     const data = await response.json();
-                    gameInfoDiv.innerHTML = `<p><strong>Status:</strong> Success! Rendering game data...</p>`;
-                    setTimeout(() => renderActiveGame(data), 500); // Small delay to show success message
+                    renderActiveGame(data);
                 } catch (error) {
-                    console.error('Error fetching active game data:', error);
-                    gameInfoDiv.innerHTML = `<div class="game-card" style="border-color: red;"><p style="color: red;"><strong>Error:</strong></p><p>${error.message}</p></div>`;
+                    gameInfoDiv.innerHTML = `<div class="game-card"><p style="color: red;">Failed to load game data: ${error.message}</p></div>`;
                 }
             }
             
@@ -215,10 +201,10 @@
                 modalCardsContainer.innerHTML = players.map(player => `
                     <div class="modal-card">
                         <h4>${player.name} (${player.cards_count} cards)</h4>
-                        ${(player.cards && player.cards.length > 0) ? player.cards.map(cardUrl => `<img src="${cardUrl}" alt="Bingo Card">`).join('') : '<p>No card images available.</p>'}
+                        ${(player.cards && player.cards.length > 0) ? player.cards.map(cardUrl => `<img src="${cardUrl.startsWith('http') ? cardUrl : API_URL + cardUrl}" alt="Card">`).join('') : '<p>No card images.</p>'}
                     </div>
                 `).join('');
-                downloadCardsBtn.onclick = () => alert(`(Demo) Downloading cards for game ${gid}`);
+                downloadCardsBtn.onclick = () => alert("Download feature not yet implemented.");
                 playerCardsModal.style.display = 'flex';
             }
 
@@ -227,24 +213,50 @@
             }
             modalCloseBtn.addEventListener('click', closeModal);
 
-            function endGame(gid) {
-                const winnerName = prompt('(Demo) Enter the winner\'s name:');
-                if (winnerName) alert(`(Demo) Game ${gid} would be ended with winner ${winnerName}.`);
-            }
-            function removePlayer(e, gid, psid, playerName) {
-                e.stopPropagation();
-                if (confirm(`(Demo) Are you sure you want to remove ${playerName}?`)) alert(`(Demo) Player ${playerName} would be removed.`);
-            }
-            function sendLiveAlert(gid) {
-                const message = prompt('(Demo) Enter the message for the live alert:');
-                if (message) alert(`(Demo) Live alert would be sent: "${message}"`);
-            }
-            function setLiveUrl(gid, url) {
-                if (url) alert(`(Demo) Live URL for game ${gid} set to:\n${url}`);
-                else alert('Please enter a URL.');
+            async function endGame(gid) {
+                const winnerName = prompt('Enter the winner\'s name:');
+                if (winnerName && confirm(`End game ${gid} with winner ${winnerName}?`)) {
+                    try {
+                        const response = await fetch(`${API_URL}/end-game/${gid}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ winnerName })
+                        });
+                        if (!response.ok) throw new Error('Failed to end game.');
+                        alert('Game has been ended and archived.');
+                        window.location.reload(); 
+                    } catch (error) {
+                        alert(`Error: ${error.message}`);
+                    }
+                }
             }
 
-            fetchActiveGameWithDebug();
+            async function removePlayer(e, gid, psid, playerName) {
+                e.stopPropagation();
+                if (confirm(`Remove player ${playerName} from game ${gid}?`)) {
+                    try {
+                        const response = await fetch(`${API_URL}/remove-player/${gid}/${psid}`, { method: 'DELETE' });
+                        if (!response.ok) throw new Error('Failed to remove player.');
+                        alert('Player removed successfully.');
+                        window.location.reload();
+                    } catch (error) {
+                        alert(`Error: ${error.message}`);
+                    }
+                }
+            }
+            
+            async function setLiveUrl(gid) {
+                const url = document.getElementById(`fb-url-input-${gid}`).value;
+                if(url) alert(`(Demo) In a real app, this would save the URL "${url}" to the database for game ${gid}.`);
+                else alert('Please enter a URL first.');
+            }
+
+            async function sendLiveAlert(gid) {
+                // This would call a backend endpoint to message all players
+                alert(`(Demo) In a real app, this would send an alert to all players in game ${gid}.`);
+            }
+
+            fetchActiveGame();
         });
     </script>
 </body>
