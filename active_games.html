@@ -9,15 +9,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <link rel="stylesheet" href="css/style.css">
+
+    <link rel="stylesheet" href="css/admin_style.css">
 </head>
 <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
 
     <header class="main-header">
         <div class="header-top">
-            <a href="index.html" class="group-name-link"><h1 class="group-name">Holdz N Chill</h1></a>
+            <a href="create_game.html" class="group-name-link"><h1 class="group-name">Holdz N Chill</h1></a>
             <button class="hamburger-menu" id="hamburger-menu" aria-controls="nav-panel" aria-expanded="false">
                 <span class="sr-only">Toggle navigation</span>
                 <span class="line line-1"></span>
@@ -25,7 +25,7 @@
                 <span class="line line-3"></span>
             </button>
             <nav class="nav-panel" id="nav-panel">
-                <a href="index.html" class="nav-item">Card Creation</a>
+                <a href="create_game.html" class="nav-item">Card Creation</a>
                 <a href="active_games.html" class="nav-item active" aria-current="page">Active Games</a>
                 <a href="history.html" class="nav-item">History</a>
             </nav>
@@ -33,27 +33,26 @@
     </header>
 
     <main id="main-content" class="content-container">
-        <section class="dev-panel">
+        <div class="dev-panel">
             <span id="dev-log">Initializing...</span>
             <button id="copy-log-btn" aria-label="Copy development log"><i class="fas fa-clipboard"></i></button>
-        </section>
-        
+        </div>
+
         <h2 class="section-header">Active Games</h2>
-        <div id="game-info">
-            <p class="loading-message">Loading active game data...</p>
+        <div id="games-container">
+            <p>Loading active games...</p>
         </div>
     </main>
     
-    <div id="player-cards-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+    <div id="player-cards-modal" class="modal-overlay">
         <div class="modal-content">
-            <button class="modal-close" id="modal-close-btn" aria-label="Close modal">&times;</button>
-            <h3 id="modal-title" class="section-header">Player Cards for Game <span id="modal-game-id"></span></h3>
+            <span class="modal-close" id="modal-close-btn">&times;</span>
+            <h3 class="section-header">Player Cards</h3>
             <div id="modal-cards-container"></div>
-            <button class="action-button" id="download-cards-btn">Download All Cards</button>
         </div>
     </div>
     
     <script src="js/main.js" defer></script>
-    <script src="js/active-games.js" defer></script>
+    <script src="js/active_games.js" defer></script>
 </body>
 </html>
