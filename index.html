@@ -169,6 +169,7 @@
             };
             log('App starting...');
 
+            // --- CORRECTED/UPDATED ELEMENT REFERENCES ---
             const mainActionBtn = document.getElementById('main-action-btn');
             const resetButton = document.getElementById('reset-button');
             const hamburgerMenu = document.getElementById('hamburger-menu');
@@ -187,6 +188,7 @@
             const state = { uploadedImage: null, balls: [], textPlaceholder: null, dateTimePlaceholder: null, isDragging: false, selectedElement: null, devicePixelRatio: window.devicePixelRatio || 1 };
             let creationStep = 'CREATE_GAME';
 
+            // --- CLASSES (BingoBall, TextPlaceholder) ---
             class BingoBall {
                 constructor(x, y, radius) { this.x = x; this.y = y; this.radius = radius; this.type = 'ball'; }
                 draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = '#e74c3c'; ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 5; ctx.fill(); ctx.shadowBlur = 0; ctx.closePath(); }
@@ -198,11 +200,12 @@
                 isPointInside(x, y) { return x >= this.x - this.width / 2 && x <= this.x + this.width / 2 && y >= this.y - this.height / 2 && y <= this.y + this.height / 2; }
             }
             
+            // --- CORE FUNCTIONS ---
             const drawCanvas = () => {
                 const dpr = state.devicePixelRatio;
                 const cssWidth = canvas.clientWidth;
                 const cssHeight = canvas.clientHeight;
-                if (canvas.width !== cssWidth * dpr || canvas.height !== cssHeight * dpr) {
+                if(canvas.width !== cssWidth * dpr || canvas.height !== cssHeight * dpr) {
                     canvas.width = cssWidth * dpr;
                     canvas.height = cssHeight * dpr;
                     ctx.scale(dpr, dpr);
@@ -224,14 +227,13 @@
                 if (state.textPlaceholder) state.textPlaceholder.draw();
                 if (state.dateTimePlaceholder) state.dateTimePlaceholder.draw();
             };
-            
             const getPointerPos = (event) => { const rect = canvas.getBoundingClientRect(); const clientX = event.clientX || event.touches[0].clientX; const clientY = event.clientY || event.touches[0].clientY; return { x: clientX - rect.left, y: clientY - rect.top, }; };
             const handleCanvasStart = (event) => { event.preventDefault(); const pos = getPointerPos(event); const allElements = [state.dateTimePlaceholder, state.textPlaceholder, ...state.balls].filter(Boolean); state.selectedElement = allElements.find(el => el.isPointInside(pos.x, pos.y)); if (state.selectedElement) { state.isDragging = true; } };
             const handleCanvasMove = (event) => { event.preventDefault(); if (state.isDragging && state.selectedElement) { const pos = getPointerPos(event); state.selectedElement.x = pos.x; state.selectedElement.y = pos.y; drawCanvas(); } };
             const handleCanvasEnd = () => { state.isDragging = false; state.selectedElement = null; };
             const handleImageUpload = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (event) => { const img = new Image(); img.onload = () => { state.uploadedImage = img; drawCanvas(); }; img.src = event.target.result; }; reader.readAsDataURL(file); };
-            const updateBallCount = (count) => { state.balls = []; const radius = parseFloat(ballSizeSlider.value); const startX = canvas.clientWidth / 2; const startY = canvas.clientHeight / 2; for (let i = 0; i < count; i++) { state.balls.push(new BingoBall(startX + (i * 30 - (count * 15)), startY, radius)); } drawCanvas(); };
-            
+            const updateBallCount = (count) => { state.balls = []; const radius = parseFloat(ballSizeSlider.value); const startX = canvas.clientWidth / 2; const startY = canvas.clientHeight / 2; for (let i = 0; i < count; i++) { state.balls.push(new BingoBall(startX + (i * (radius * 2.5) - (count * (radius * 1.25))), startY, radius)); } drawCanvas(); };
+
             // --- RESTORED FUNCTIONS ---
             const updateTextPlaceholder = () => {
                 const text = playerNameInput.value || "Player Name";
@@ -258,8 +260,62 @@
             };
 
             // --- Step 1 & 2 Button Logic ---
-            mainActionBtn.addEventListener('click', async () => { /* ... same as previous full version ... */ });
-            const handleReset = () => { log('Resetting.'); state.balls = []; state.uploadedImage = null; state.textPlaceholder = null; state.dateTimePlaceholder = null; document.getElementById('game-id-input').value = ''; mainActionBtn.disabled = false; mainActionBtn.innerHTML = '<i class="fas fa-rocket"></i> Create Game'; creationStep = 'CREATE_GAME'; updateTextPlaceholder(); updateDateTimePlaceholder(); };
+            mainActionBtn.addEventListener('click', async () => {
+                mainActionBtn.disabled = true;
+                const gid = document.getElementById('game-id-input').value;
+                if (creationStep === 'CREATE_GAME') {
+                    log('Step 1: Create Game clicked.');
+                    mainActionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+                    const maxp = document.getElementById('max-players-selector').querySelector('.control-button.active').dataset.value;
+                    const cards = document.getElementById('cards-per-user-selector').querySelector('.control-button.active').dataset.value;
+                    if (!gid || gid.trim() === '') { alert("Please enter a unique Game ID."); mainActionBtn.disabled = false; mainActionBtn.innerHTML = '<i class="fas fa-rocket"></i> Create Game'; return; }
+                    try {
+                        const response = await fetch('https://holdznchill.onrender.com/create-game', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gid, maxp, cards, gstatus: 'active' }) });
+                        if (!response.ok) throw new Error((await response.json()).message);
+                        alert('Step 1 OK: Game created! Ready for Step 2.');
+                        mainActionBtn.disabled = false;
+                        mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Template';
+                        creationStep = 'UPLOAD_TEMPLATE';
+                    } catch (error) {
+                        alert('Game creation failed: ' + error.message);
+                        mainActionBtn.disabled = false;
+                        mainActionBtn.innerHTML = '<i class="fas fa-rocket"></i> Create Game';
+                    }
+                } else if (creationStep === 'UPLOAD_TEMPLATE') {
+                    log('Step 2: Upload Template clicked.');
+                    mainActionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+                    if (!state.uploadedImage) { alert('Please upload a background image first.'); mainActionBtn.disabled = false; mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Template'; return; }
+                    const templateImage = canvas.toDataURL('image/png');
+                    try {
+                        const response = await fetch('https://holdznchill.onrender.com/upload-template', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gid, templateImage }) });
+                        if (!response.ok) throw new Error((await response.json()).message);
+                        alert('Step 2 OK: Template uploaded successfully!');
+                        mainActionBtn.innerHTML = '<i class="fas fa-check"></i> Game Active!';
+                        creationStep = 'COMPLETE';
+                    } catch (error) {
+                        alert('Template upload failed: ' + error.message);
+                        mainActionBtn.disabled = false;
+                        mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Template';
+                    }
+                }
+            });
+
+            const handleReset = () => {
+                log('Resetting.');
+                state.balls = [];
+                state.uploadedImage = null;
+                state.textPlaceholder = null;
+                state.dateTimePlaceholder = null;
+                document.getElementById('game-id-input').value = '';
+                mainActionBtn.disabled = false;
+                mainActionBtn.innerHTML = '<i class="fas fa-rocket"></i> Create Game';
+                creationStep = 'CREATE_GAME';
+                // Also reset the text input fields
+                playerNameInput.value = '';
+                updateTextPlaceholder();
+                updateDateTimePlaceholder();
+                drawCanvas();
+            };
 
             // --- Event Listeners ---
             resetButton.addEventListener('click', handleReset);
@@ -270,6 +326,11 @@
             playerNameInput.addEventListener('input', updateTextPlaceholder);
             nameSizeSlider.addEventListener('input', updateTextPlaceholder);
             dateSizeSlider.addEventListener('input', updateDateTimePlaceholder);
+            ballSizeSlider.addEventListener('input', (e) => {
+                const newRadius = parseFloat(e.target.value);
+                state.balls.forEach(ball => ball.radius = newRadius);
+                drawCanvas();
+            });
             
             document.querySelectorAll('.segmented-control').forEach(container => {
                 container.addEventListener('click', (e) => {
