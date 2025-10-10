@@ -125,8 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `).join('');
         downloadCardsBtn.onclick = () => alert("Download feature not yet implemented.");
-        playerCardsModal.hidden = false;
-        document.getElementById('modal-close-btn').focus();
+        if (playerCardsModal) playerCardsModal.hidden = false;
+        document.getElementById('modal-close-btn')?.focus();
     }
 
     function closeModal() {
