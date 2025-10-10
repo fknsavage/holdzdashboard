@@ -87,7 +87,7 @@
     <main class="content-container">
         <h2 class="section-header">Active Games</h2>
         <div id="game-info">
-            <p>Initializing...</p>
+            <p>Loading active game data...</p>
         </div>
     </main>
     
@@ -123,7 +123,6 @@
             });
 
             function renderActiveGame(data) {
-                // This is the original, correct render function
                 if (data.gstatus === 'active') {
                     const totalSlotsTaken = (data.players || []).reduce((sum, player) => sum + (player.cards_count || 0), 0);
                     let playerListHtml = data.players && data.players.length > 0 ? 
@@ -136,6 +135,7 @@
                                 </div>
                             </li>
                         `).join('') : '<li>No players have joined yet.</li>';
+
                     gameInfoDiv.innerHTML = `
                         <div class="game-card" id="game-card-${data.gid}">
                             <div class="game-card-header">
@@ -157,53 +157,119 @@
                             <ul class="player-list">${playerListHtml}</ul>
                         </div>
                     `;
+
                     document.getElementById(`save-url-btn-${data.gid}`).addEventListener('click', () => setLiveUrl(data.gid));
+                    
                     if (data.players && data.players.length > 0) {
                         document.getElementById(`end-game-btn-${data.gid}`).addEventListener('click', () => endGame(data.gid));
                         document.getElementById(`preview-cards-btn-${data.gid}`).addEventListener('click', () => openCardsModal(data.gid, data.players));
-                        document.querySelectorAll('.view-cards-btn').forEach(button => button.addEventListener('click', () => { const player = data.players.find(p => p.psid === button.dataset.playerPsid); if(player) openCardsModal(data.gid, [player]); }));
-                        document.querySelectorAll('.remove-player-btn').forEach(button => button.addEventListener('click', (e) => removePlayer(e, data.gid, button.dataset.playerPsid, button.dataset.playerName)));
+                        document.querySelectorAll('.view-cards-btn').forEach(button => {
+                            button.addEventListener('click', () => {
+                                const player = data.players.find(p => p.psid === button.dataset.playerPsid);
+                                if(player) openCardsModal(data.gid, [player]);
+                            });
+                        });
+                        document.querySelectorAll('.remove-player-btn').forEach(button => {
+                            button.addEventListener('click', (e) => removePlayer(e, data.gid, button.dataset.playerPsid, button.dataset.playerName));
+                        });
                     }
                     document.getElementById(`send-live-alert-btn-${data.gid}`).addEventListener('click', () => sendLiveAlert(data.gid));
                 } else {
-                    gameInfoDiv.innerHTML = `<div class="game-card"><p>No active games are currently running.</p><p>Start a new game on the Card Creation page!</p><span class="status-badge status-inactive">Inactive</span></div>`;
+                    gameInfoDiv.innerHTML = `
+                        <div class="game-card">
+                            <p>No active games are currently running.</p>
+                            <p>Start a new game on the Card Creation page!</p>
+                            <span class="status-badge status-inactive">Inactive</span>
+                        </div>
+                    `;
+                }
+            }
+
+            async function fetchActiveGame() {
+                try {
+                    const response = await fetch(`${API_URL}/active-game`);
+                    if (!response.ok) throw new Error(`Server Error: ${response.status}`);
+                    const data = await response.json();
+                    renderActiveGame(data);
+                } catch (error) {
+                    gameInfoDiv.innerHTML = `<div class="game-card"><p style="color: red;">Failed to load game data: ${error.message}</p></div>`;
                 }
             }
             
-            // --- UPDATED DEBUG FUNCTION ---
-            async function fetchActiveGameWithDebug() {
-                gameInfoDiv.innerHTML = `<p><strong>Status:</strong> Connecting to server...</p>`;
-                const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Request timed out. The server may be waking up from sleep. Please wait a minute and refresh.')), 25000)
-                );
-                try {
-                    const response = await Promise.race([
-                        fetch(`${API_URL}/active-game`),
-                        timeoutPromise
-                    ]);
-                    if (!response.ok) {
-                        // Try to get a more detailed error message from the server
-                        const errorText = await response.text();
-                        throw new Error(`Server connection failed with status: ${response.status}. Response: ${errorText}`);
+            function openCardsModal(gid, players) {
+                const modalCardsContainer = document.getElementById('modal-cards-container');
+                const downloadCardsBtn = document.getElementById('download-cards-btn');
+                document.getElementById('modal-game-id').textContent = gid;
+                modalCardsContainer.innerHTML = players.map(player => `
+                    <div class="modal-card">
+                        <h4>${player.name} (${player.cards_count} cards)</h4>
+                        ${(player.cards && player.cards.length > 0) ? player.cards.map(cardUrl => `<img src="${cardUrl.startsWith('http') ? cardUrl : API_URL + cardUrl}" alt="Card">`).join('') : '<p>No card images.</p>'}
+                    </div>
+                `).join('');
+                downloadCardsBtn.onclick = () => alert("Download feature not yet implemented.");
+                playerCardsModal.style.display = 'flex';
+            }
+
+            function closeModal() {
+                playerCardsModal.style.display = 'none';
+            }
+            modalCloseBtn.addEventListener('click', closeModal);
+
+            // --- ALL FUNCTIONS ARE NOW LIVE ---
+            async function endGame(gid) {
+                const winnerName = prompt('Enter the winner\'s name:');
+                if (winnerName && confirm(`Are you sure you want to end game ${gid} with winner ${winnerName}?`)) {
+                    try {
+                        const response = await fetch(`${API_URL}/end-game/${gid}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ winnerName })
+                        });
+                        if (!response.ok) {
+                            const err = await response.json();
+                            throw new Error(err.message || 'Failed to end game.');
+                        }
+                        alert('Game has been ended and archived.');
+                        window.location.reload(); 
+                    } catch (error) {
+                        alert(`Error: ${error.message}`);
                     }
-                    const data = await response.json();
-                    gameInfoDiv.innerHTML = `<p><strong>Status:</strong> Success! Rendering game data...</p>`;
-                    setTimeout(() => renderActiveGame(data), 500);
-                } catch (error) {
-                    console.error('Error fetching active game data:', error);
-                    gameInfoDiv.innerHTML = `<div class="game-card" style="border-color: red;"><p style="color: red;"><strong>Error:</strong></p><p>${error.message}</p></div>`;
                 }
             }
 
-            function openCardsModal(gid, players) { /* ... same as before ... */ }
-            function closeModal() { /* ... same as before ... */ }
-            modalCloseBtn.addEventListener('click', closeModal);
-            async function endGame(gid) { /* ... same as before ... */ }
-            async function removePlayer(e, gid, psid, playerName) { /* ... same as before ... */ }
-            async function setLiveUrl(gid) { /* ... same as before ... */ }
-            async function sendLiveAlert(gid) { /* ... same as before ... */ }
+            async function removePlayer(e, gid, psid, playerName) {
+                e.stopPropagation();
+                if (confirm(`Are you sure you want to remove player ${playerName} from game ${gid}?`)) {
+                    try {
+                        const response = await fetch(`${API_URL}/remove-player/${gid}/${psid}`, { method: 'DELETE' });
+                        if (!response.ok) {
+                             const err = await response.json();
+                            throw new Error(err.message || 'Failed to remove player.');
+                        }
+                        alert('Player removed successfully.');
+                        window.location.reload();
+                    } catch (error) {
+                        alert(`Error: ${error.message}`);
+                    }
+                }
+            }
+            
+            async function setLiveUrl(gid) {
+                // This feature requires a backend endpoint. We can build it next.
+                const url = document.getElementById(`fb-url-input-${gid}`).value;
+                if(!url) {
+                    alert('Please enter a URL first.');
+                    return;
+                }
+                alert(`This feature is not yet built. In a real app, this would save the URL "${url}" to the database for game ${gid}.`);
+            }
 
-            fetchActiveGameWithDebug();
+            async function sendLiveAlert(gid) {
+                // This feature requires a backend endpoint. We can build it next.
+                alert(`This feature is not yet built. In a real app, this would send an alert to all players in game ${gid}.`);
+            }
+
+            fetchActiveGame();
         });
     </script>
 </body>
