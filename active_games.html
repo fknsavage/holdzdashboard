@@ -255,15 +255,14 @@
             }
             
             async function setLiveUrl(gid) {
+                // This feature requires a backend endpoint. For now, it's a demo.
                 const url = document.getElementById(`fb-url-input-${gid}`).value;
-                if(!url) return alert('Please enter a URL first.');
-                
-                // This would be a real API call in the future
-                alert(`This would save the URL "${url}" to the database for game ${gid}.`);
+                if(url) alert(`This would save the URL "${url}" to the database for game ${gid}.`);
+                else alert('Please enter a URL first.');
             }
 
             async function sendLiveAlert(gid) {
-                // This would be a real API call in the future
+                // This feature requires a backend endpoint. For now, it's a demo.
                 alert(`This would send an alert to all players in game ${gid}.`);
             }
 
