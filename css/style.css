@@ -1,1 +1,376 @@
+/* === CSS Custom Properties (Variables) === */
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #2c3e50;
+    --background-color: #1a1a2e;
+    --text-color: #ecf0f1;
+    --hover-glow: #8e44ad;
+    --panel-color: #2a3a4e;
+    --danger-color: #e74c3c;
+    --font-primary: 'Montserrat', sans-serif;
+    --font-secondary: 'Roboto', sans-serif;
+}
 
+/* === Base & Mobile-First Styles (320px+) === */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-secondary);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* Accessibility: Hide visually but keep for screen readers */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary-color);
+    color: white;
+    padding: 8px;
+    z-index: 1000;
+    transition: top 0.3s ease-in-out;
+}
+.skip-link:focus {
+    top: 0;
+}
+
+.main-header {
+    padding: 1rem;
+    border-bottom: 2px solid var(--secondary-color);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    position: relative; /* For nav panel positioning */
+    z-index: 100;
+}
+
+.header-top {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.group-name-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.group-name {
+    font-family: var(--font-primary);
+    font-size: 1.5rem; /* Slightly smaller for mobile */
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    animation: glow 2s infinite ease-in-out;
+}
+
+@keyframes glow {
+    0% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+    50% { text-shadow: 0 0 15px var(--hover-glow), 0 0 25px var(--hover-glow); }
+    100% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+}
+
+.hamburger-menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30px;
+    height: 24px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    z-index: 101; /* Above the panel */
+}
+
+.line {
+    width: 100%;
+    height: 3px;
+    background-color: var(--primary-color);
+    border-radius: 2px;
+    transition: all 0.3s ease-in-out;
+}
+
+.hamburger-menu.open .line-1 { transform: rotate(45deg) translate(5px, 5px); }
+.hamburger-menu.open .line-2 { opacity: 0; }
+.hamburger-menu.open .line-3 { transform: rotate(-45deg) translate(7px, -7px); }
+
+.nav-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 250px;
+    height: 100vh;
+    background-color: var(--panel-color);
+    box-shadow: -4px 0 15px rgba(0, 0, 0, 0.4);
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    padding-top: 5rem;
+}
+
+.nav-panel.open {
+    transform: translateX(0);
+}
+
+.nav-item {
+    display: block;
+    padding: 1rem 2rem;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: background-color 0.2s, transform 0.2s;
+    min-height: 44px; /* Touch target minimum size */
+    display: flex;
+    align-items: center;
+}
+.nav-item:hover, .nav-item:focus {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+    outline: none;
+}
+.nav-item.active {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.content-container {
+    flex: 1;
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.section-header {
+    font-family: var(--font-primary);
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+    text-align: center;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.loading-message, .error-message {
+    text-align: center;
+    padding: 2rem;
+    background-color: var(--panel-color);
+    border-radius: 10px;
+}
+.error-message {
+    color: var(--danger-color);
+    font-weight: bold;
+}
+
+.history-item {
+    background-color: var(--panel-color);
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.history-item p {
+    font-size: 1rem;
+    color: var(--text-color);
+    margin: 0 0 0.5rem;
+    word-break: break-all; /* Prevents long strings from overflowing */
+}
+
+.history-item strong {
+    color: var(--primary-color);
+}
+
+/* === Tablet Styles (768px+) === */
+@media (min-width: 768px) {
+    .main-header {
+        padding: 1rem 2rem;
+    }
+    .group-name {
+        font-size: 2rem;
+    }
+    .content-container {
+        padding: 2rem;
+    }
+    .history-list {
+        max-width: 600px;
+    }
+}
+
+/* === Desktop Styles (1024px+) === */
+@media (min-width: 1024px) {
+    .content-container {
+        padding: 3rem;
+    }
+    .history-list {
+        max-width: 700px;
+    }
+}
+/* === CSS Appended to style.css === */
+
+/* --- Styles for Active Games Page --- */
+.dev-panel {
+    width: 100%;
+    background-color: rgba(0,0,0,0.9);
+    color: var(--primary-color);
+    padding: 0.5rem 1rem;
+    z-index: 50;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+}
+#dev-log {
+    font-family: monospace;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+}
+#copy-log-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+    font-size: 1rem;
+    min-height: 44px; /* Touch target */
+    min-width: 44px; /* Touch target */
+}
+
+.game-card {
+    background-color: var(--panel-color);
+    border-radius: 10px;
+    padding: 1.5rem;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.game-card-header { display: flex; justify-content: space-between; align-items: center; }
+.game-id { font-family: var(--font-primary); font-size: 1.2rem; font-weight: bold; color: var(--primary-color); }
+.status-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; }
+.status-active { background-color: #2ecc71; color: white; }
+.url-input-group { display: flex; gap: 0.5rem; }
+.url-input-group input { flex-grow: 1; background-color: var(--secondary-color); border: 1px solid var(--primary-color); border-radius: 5px; color: var(--text-color); padding: 0.75rem; font-size: 1rem; min-height: 44px;}
+.url-input-group button { background-color: var(--primary-color); color: var(--background-color); border: none; border-radius: 5px; padding: 0 1rem; font-weight: bold; cursor: pointer; min-height: 44px;}
+.card-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+.player-list { list-style: none; padding-top: 1rem; border-top: 1px solid var(--secondary-color); }
+.player-item { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.75rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+.player-item:last-child { border-bottom: none; }
+.player-info { display: flex; justify-content: space-between; align-items: center; }
+.player-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+.action-button { border: none; border-radius: 50px; padding: 0.75rem 1.5rem; font-size: 0.9rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); transition: background-color 0.3s, transform 0.2s; background-color: var(--primary-color); color: var(--background-color); min-height: 44px; }
+.action-button.end-game { background-color: var(--danger-color); color: white; }
+.action-button.secondary-button { background-color: var(--panel-color); color: var(--text-color); border: 2px solid var(--primary-color); box-shadow: none; }
+.action-button:hover, .action-button:focus { transform: translateY(-2px); outline: 2px solid var(--hover-glow); }
+.action-button:disabled { background-color: var(--secondary-color); color: rgba(255,255,255,0.4); cursor: not-allowed; transform: none; box-shadow: none; }
+
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); display: flex; justify-content: center; align-items: center; z-index: 200; }
+.modal-overlay[hidden] { display: none; }
+.modal-content { background-color: var(--background-color); padding: 2rem; border-radius: 10px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); max-width: 90%; width: 500px; max-height: 90%; overflow-y: auto; position: relative; }
+.modal-close { position: absolute; top: 10px; right: 15px; font-size: 2rem; cursor: pointer; color: var(--text-color); background: none; border: none; min-height: 44px; min-width: 44px; }
+.modal-card { margin-bottom: 1rem; padding: 1rem; border-radius: 8px; text-align: center; background-color: var(--panel-color); }
+.modal-card img { max-width: 100%; height: auto; border-radius: 5px; margin-top: 0.5rem; }
+
+/* --- Styles for Card Creator Page --- */
+.canvas-section { width: 100%; }
+.canvas-container { margin: 0 0 1rem 0; border: 2px dashed var(--primary-color); border-radius: 10px; background-color: var(--secondary-color); display: flex; justify-content: center; align-items: center; position: relative; min-height: 300px; aspect-ratio: 1 / 1; cursor: grab; }
+.canvas-container.dragging { cursor: grabbing; }
+#bingo-canvas { display: block; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+#canvas-placeholder { text-align: center; color: var(--text-color); pointer-events: none; }
+#canvas-placeholder.hidden { display: none; }
+.upload-icon { font-size: 3rem; margin-bottom: 0.5rem; color: var(--primary-color); }
+
+.controls-section { width: 100%; }
+.controls-container { display: flex; flex-direction: column; gap: 1.5rem; }
+.control-group { display: flex; flex-direction: column; gap: 0.75rem; }
+.control-label { font-size: 0.9rem; color: var(--primary-color); text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+.segmented-control { display: flex; background-color: var(--secondary-color); border-radius: 8px; overflow: hidden; padding: 2px; }
+.control-button { flex: 1; background: none; border: none; color: var(--text-color); padding: 0.75rem 0.5rem; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; border-radius: 6px; min-height: 44px;}
+.control-button.active { background-color: var(--primary-color); color: var(--background-color); font-weight: bold; box-shadow: 0 0 10px rgba(74, 144, 226, 0.5); transform: scale(1.05); }
+.text-input { background: var(--secondary-color); border: 2px solid var(--primary-color); color: var(--text-color); padding: 0.75rem; font-size: 1rem; width: 100%; outline: none; border-radius: 5px; min-height: 44px; }
+.text-input:focus { border-color: var(--hover-glow); }
+.size-slider { display: flex; align-items: center; gap: 1rem; }
+.size-slider .fas { color: var(--primary-color); font-size: 1.5rem; }
+.slider { -webkit-appearance: none; width: 100%; height: 6px; background: var(--secondary-color); outline: none; border-radius: 3px; }
+.slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background: var(--primary-color); border-radius: 50%; cursor: pointer; }
+.action-buttons-container { display: flex; gap: 1rem; }
+.action-button.full { flex-grow: 1; }
+.action-button i { margin-right: 0.5rem; }
+.create-button { background-color: var(--primary-color); color: var(--background-color); }
+.reset-button { background-color: #e74c3c; color: var(--text-color); flex-grow: 0; flex-basis: 120px; }
+.upload-button { background-color: var(--secondary-color); border: 2px solid var(--primary-color); }
+
+/* === Tablet Styles (768px+) === */
+@media (min-width: 768px) {
+    .player-item {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .card-actions {
+        justify-content: flex-end;
+    }
+    .game-card {
+        max-width: 700px;
+    }
+}
+
+/* === Desktop Styles (1024px+) === */
+@media (min-width: 1024px) {
+    /* Create a two-column layout for the creator page */
+    .creator-layout {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 2rem;
+    }
+    .canvas-section {
+        flex: 1.5; /* Canvas takes more space */
+        position: sticky; /* Make canvas stick while scrolling controls */
+        top: 2rem;
+    }
+    .canvas-container {
+        margin: 0;
+        height: auto;
+        max-height: 80vh;
+    }
+    .controls-section {
+        flex: 1; /* Controls take less space */
+        max-height: calc(100vh - 150px); /* Adjust based on header height */
+        overflow-y: auto;
+    }
+    .controls-container {
+        padding-right: 1rem; /* For scrollbar */
+    }
+}
