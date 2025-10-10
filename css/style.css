@@ -374,3 +374,10 @@ body {
         padding-right: 1rem; /* For scrollbar */
     }
 }
+/* Add this property to your existing body rule */
+body {
+    font-family: var(--font-secondary);
+    color: var(--text-color);
+    line-height: 1.6;
+    overflow-x: hidden; /* Prevents all horizontal scrolling */
+}
