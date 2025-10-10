@@ -1,15 +1,18 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const devLog = document.getElementById('dev-log');
-    const log = (message) => {
-        const timestamp = new Date().toLocaleTimeString();
-        if(devLog) devLog.textContent = `[${timestamp}] ${message}`;
-        console.log(`[${timestamp}] ${message}`);
-    };
-    log('App starting...');
+// No DOMContentLoaded wrapper needed because of 'defer' in the script tag
 
-    const mainActionBtn = document.getElementById('main-action-btn');
-    if (!mainActionBtn) return; // Exit if not on the creator page
+const devLog = document.getElementById('dev-log');
+const log = (message) => {
+    const timestamp = new Date().toLocaleTimeString();
+    if(devLog) devLog.textContent = `[${timestamp}] ${message}`;
+    console.log(`[${timestamp}] ${message}`);
+};
+log('App starting...');
 
+const mainActionBtn = document.getElementById('main-action-btn');
+if (!mainActionBtn) {
+    // Exit if not on the creator page, prevents errors on other pages
+    // You could also just not include this script on other pages
+} else {
     const resetButton = document.getElementById('reset-button');
     const canvas = document.getElementById('bingo-canvas');
     const ctx = canvas.getContext('2d');
@@ -197,4 +200,4 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTextPlaceholder();
     updateDateTimePlaceholder();
     updateBallCount(5); // Initialize with 5 balls
-});
+}
