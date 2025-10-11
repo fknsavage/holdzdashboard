@@ -1,9 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // This check ensures the script only runs on the card creation page
     const mainActionBtn = document.getElementById('main-action-btn');
-    if (!mainActionBtn) { 
-        return; 
-    }
+    if (!mainActionBtn) { return; }
 
     const devLog = document.getElementById('dev-log');
     const log = (message) => {
@@ -15,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     log('App starting...');
 
-    // --- Element Selectors ---
     const resetButton = document.getElementById('reset-button');
     const canvas = document.getElementById('bingo-canvas');
     const ctx = canvas.getContext('2d');
@@ -28,26 +24,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameSizeSlider = document.getElementById('name-size-slider');
     const dateSizeSlider = document.getElementById('date-size-slider');
     
-    // --- Application State ---
-    const state = { 
-        uploadedImage: null, 
-        balls: [], 
-        playerNamePlaceholder: null,
-        dateTimePlaceholder: null,
-        isDragging: false, 
-        selectedElement: null, 
-        devicePixelRatio: window.devicePixelRatio || 1 
-    };
+    const state = { uploadedImage: null, balls: [], playerNamePlaceholder: null, dateTimePlaceholder: null, isDragging: false, selectedElement: null, devicePixelRatio: window.devicePixelRatio || 1 };
     let creationStep = 'CREATE_GAME';
 
-    // --- Classes for Canvas Objects ---
     class BingoBall {
         constructor(x, y, radius) { this.x = x; this.y = y; this.radius = radius; this.type = 'ball'; }
         draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = '#e74c3c'; ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 5; ctx.fill(); ctx.shadowBlur = 0; ctx.closePath(); }
         isPointInside(px, py) { const dx = px - this.x; const dy = py - this.y; return dx * dx + dy * dy < this.radius * this.radius; }
     }
     class TextPlaceholder {
-        constructor(x, y, text, fontSize, type) { this.x = x; this.y = y; this.text = text; this.fontSize = fontSize; this.type = type; this.width=0; this.height=0; }
+        constructor(x, y, text, fontSize, type) { this.x = x; this.y = y; this.text = text; this.fontSize = fontSize; this.type = type; this.width = 0; this.height = 0; }
         draw() { 
             ctx.font = `bold ${this.fontSize}px Montserrat`; 
             ctx.fillStyle = '#ecf0f1'; 
@@ -71,19 +57,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // --- Canvas Drawing Logic ---
     const drawCanvas = () => {
         const dpr = state.devicePixelRatio;
         const cssWidth = canvas.clientWidth;
         const cssHeight = canvas.clientHeight;
-        if(canvas.width !== cssWidth * dpr || canvas.height !== cssHeight * dpr) {
+        if (canvas.width !== cssWidth * dpr || canvas.height !== cssHeight * dpr) {
             canvas.width = cssWidth * dpr;
             canvas.height = cssHeight * dpr;
             ctx.scale(dpr, dpr);
         }
         ctx.clearRect(0, 0, cssWidth, cssHeight);
         if (state.uploadedImage) {
-            if(canvasPlaceholder) canvasPlaceholder.style.display = 'none';
+            if (canvasPlaceholder) canvasPlaceholder.style.display = 'none';
             const imgAspectRatio = state.uploadedImage.width / state.uploadedImage.height;
             const canvasAspectRatio = cssWidth / cssHeight;
             let imgDrawWidth = (imgAspectRatio > canvasAspectRatio) ? cssWidth : cssHeight * imgAspectRatio;
@@ -92,14 +77,13 @@ document.addEventListener('DOMContentLoaded', () => {
             let imgDrawY = (cssHeight - imgDrawHeight) / 2;
             ctx.drawImage(state.uploadedImage, imgDrawX, imgDrawY, imgDrawWidth, imgDrawHeight);
         } else {
-            if(canvasPlaceholder) canvasPlaceholder.style.display = 'flex';
+            if (canvasPlaceholder) canvasPlaceholder.style.display = 'flex';
         }
         state.balls.forEach(ball => ball.draw());
         if (state.playerNamePlaceholder) state.playerNamePlaceholder.draw();
         if (state.dateTimePlaceholder) state.dateTimePlaceholder.draw();
     };
     
-    // --- Placeholder Creation & Updates ---
     const updatePlayerNamePlaceholder = () => {
         const text = playerNameInput.value || "Player Name";
         const fontSize = parseFloat(nameSizeSlider.value);
@@ -128,7 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
         drawCanvas();
     };
 
-    // --- Event Handlers ---
     const getPointerPos = (event) => { const rect = canvas.getBoundingClientRect(); const clientX = event.clientX || event.touches[0].clientX; const clientY = event.clientY || event.touches[0].clientY; return { x: clientX - rect.left, y: clientY - rect.top }; };
     const handleCanvasStart = (event) => { event.preventDefault(); const pos = getPointerPos(event); const allElements = [state.dateTimePlaceholder, state.playerNamePlaceholder, ...state.balls].filter(Boolean); state.selectedElement = allElements.find(el => el.isPointInside(pos.x, pos.y)); if (state.selectedElement) { state.isDragging = true; canvasContainer.style.cursor = 'grabbing'; } };
     const handleCanvasMove = (event) => { event.preventDefault(); if (state.isDragging && state.selectedElement) { const pos = getPointerPos(event); state.selectedElement.x = pos.x; state.selectedElement.y = pos.y; drawCanvas(); } };
@@ -164,14 +147,55 @@ document.addEventListener('DOMContentLoaded', () => {
         updatePlayerNamePlaceholder();
         updateDateTimePlaceholder();
         const initialBallButton = document.querySelector('.control-button[data-value="3"]');
-        if(initialBallButton) initialBallButton.click(); else updateBallCount(5);
+        if (initialBallButton) initialBallButton.click(); else updateBallCount(5);
         drawCanvas();
     };
 
-    // --- API Call Logic ---
-    mainActionBtn.addEventListener('click', async () => { /* ... (This logic was complex and seems to be missing from the provided context, assuming it exists elsewhere) ... */ alert('Create Game button clicked - API logic needs to be added here.'); });
+    mainActionBtn.addEventListener('click', async () => {
+        mainActionBtn.disabled = true;
+        const gid = document.getElementById('game-id-input').value;
+        if (creationStep === 'CREATE_GAME') {
+            log('Step 1: Create Game clicked.');
+            mainActionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            const maxp = document.getElementById('max-players-selector').querySelector('.control-button.active').dataset.value;
+            const cards = document.getElementById('cards-per-user-selector').querySelector('.control-button.active').dataset.value;
+            if (!gid || gid.trim() === '') { alert("Please enter a unique Game ID."); mainActionBtn.disabled = false; mainActionBtn.innerHTML = '<i class="fas fa-rocket"></i> Create Game'; return; }
+            try {
+                const response = await fetch('https://holdznchill.onrender.com/create-game', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gid, maxp, cards, gstatus: 'active' }) });
+                if (!response.ok) throw new Error((await response.json()).message);
+                alert('Step 1 OK: Game created! Ready for Step 2.');
+                mainActionBtn.disabled = false;
+                mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Template';
+                creationStep = 'UPLOAD_TEMPLATE';
+            } catch (error) {
+                alert('Game creation failed: ' + error.message);
+                mainActionBtn.disabled = false;
+                mainActionBtn.innerHTML = '<i class="fas fa-rocket"></i> Create Game';
+            }
+        } else if (creationStep === 'UPLOAD_TEMPLATE') {
+            log('Step 2: Upload Template clicked.');
+            mainActionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+            if (!state.uploadedImage) { alert('Please upload a background image first.'); mainActionBtn.disabled = false; mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Template'; return; }
+            const templateData = {
+                backgroundImage: state.uploadedImage.src,
+                balls: state.balls.map(b => ({ x: b.x / canvas.clientWidth, y: b.y / canvas.clientHeight, radius: b.radius })),
+                playerNamePlaceholder: { x: state.playerNamePlaceholder.x / canvas.clientWidth, y: state.playerNamePlaceholder.y / canvas.clientHeight, fontSize: state.playerNamePlaceholder.fontSize },
+                dateTimePlaceholder: { x: state.dateTimePlaceholder.x / canvas.clientWidth, y: state.dateTimePlaceholder.y / canvas.clientHeight, fontSize: state.dateTimePlaceholder.fontSize }
+            };
+            try {
+                const response = await fetch('https://holdznchill.onrender.com/upload-template', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gid, templateData }) });
+                if (!response.ok) throw new Error((await response.json()).message);
+                alert('Step 2 OK: Template uploaded successfully!');
+                mainActionBtn.innerHTML = '<i class="fas fa-check"></i> Game Active!';
+                creationStep = 'COMPLETE';
+            } catch (error) {
+                alert('Template upload failed: ' + error.message);
+                mainActionBtn.disabled = false;
+                mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Template';
+            }
+        }
+    });
 
-    // --- Attach Event Listeners ---
     resetButton.addEventListener('click', handleReset);
     uploadButton.addEventListener('click', () => imageUploadInput.click());
     imageUploadInput.addEventListener('change', handleImageUpload);
@@ -198,12 +222,11 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.addEventListener('touchend', handleCanvasEnd);
     window.addEventListener('resize', drawCanvas);
     
-    // --- Initial Page Load ---
     drawCanvas();
     updatePlayerNamePlaceholder();
     updateDateTimePlaceholder();
     const initialBallButton = document.querySelector('.control-button[data-value="3"]');
-    if(initialBallButton) {
+    if (initialBallButton) {
         initialBallButton.click();
     } else {
         updateBallCount(5);
