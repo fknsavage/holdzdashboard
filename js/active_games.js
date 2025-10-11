@@ -1,3 +1,38 @@
+alert("active_games.js has started!"); // This is our test. Does this pop up?
+
+const gamesContainer = document.getElementById('games-container');
+const playerCardsModal = document.getElementById('player-cards-modal');
+const modalCloseBtn = document.getElementById('modal-close-btn');
+const modalCardsContainer = document.getElementById('modal-cards-container');
+const devLog = document.getElementById('dev-log');
+
+const API_URL = 'https://holdznchill.onrender.com';
+
+// Centralized logging function
+const log = (message) => {
+    if (devLog) {
+        const timestamp = new Date().toLocaleTimeString();
+        devLog.textContent = `[${timestamp}] ${message}`;
+    }
+    console.log(message);
+};
+
+async function fetchActiveGames() {
+    log('Fetching active games...');
+    try {
+        const response = await fetch(`${API_URL}/api/games/active`);
+        if (!response.ok) throw new Error(`Server Error: ${response.status}`);
+        const data = await response.json();
+        log('Successfully fetched and parsed data.');
+        renderGames(data);
+    } catch (error) {
+        log(`Error fetching games: ${error.message}`);
+        gamesContainer.innerHTML = `<div class="game-card"><p style="color: var(--danger-color);">Failed to load games: ${error.message}</p></div>`;
+    }
+}
+
+// ... the rest of the file remains the same ...
+// renderGames, handleSetUrl, attachEventListeners, etc.
 const gamesContainer = document.getElementById('games-container');
 const playerCardsModal = document.getElementById('player-cards-modal');
 const modalCloseBtn = document.getElementById('modal-close-btn');
