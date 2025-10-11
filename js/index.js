@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
             this.height = 0;
         }
         draw() {
-            ctx.font = `bold ${this.fontSize}px Montserrat`;
+            ctx.font = `bold ${this.fontSize}px Montserrat, sans-serif`;
             ctx.fillStyle = "#ecf0f1";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
@@ -87,6 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             ctx.shadowBlur = 0;
 
+            // Calculate width as max line width
             this.width = lines.length === 0 ? 0 : Math.max(...lines.map(line => ctx.measureText(line).width));
             this.height = totalHeight;
         }
@@ -303,7 +304,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateDateTimePlaceholder();
         const initialBallButton = document.querySelector(".control-button[data-value='3']");
         if (initialBallButton) initialBallButton.click();
-        else updateBallCount(5);
+        else updateBallCount(3);
         drawCanvas();
     };
 
@@ -436,10 +437,11 @@ document.addEventListener("DOMContentLoaded", () => {
     playerNameInput.addEventListener("input", updatePlayerNamePlaceholder);
     nameSizeSlider.addEventListener("input", updatePlayerNamePlaceholder);
     dateSizeSlider.addEventListener("input", updateDateTimePlaceholder);
+    
+    // Fix: On ball size slider change, update ball count to reposition balls correctly.
     ballSizeSlider.addEventListener("input", (e) => {
-        const newRadius = parseFloat(e.target.value);
-        state.balls.forEach(ball => ball.radius = newRadius);
-        drawCanvas();
+        const count = state.balls.length || 3; // fallback to 3 if no balls yet
+        updateBallCount(count);
     });
 
     document.querySelectorAll(".segmented-control").forEach((container) => {
@@ -464,15 +466,26 @@ document.addEventListener("DOMContentLoaded", () => {
     canvas.addEventListener("touchstart", handleCanvasStart, { passive: false });
     canvas.addEventListener("touchmove", handleCanvasMove, { passive: false });
     canvas.addEventListener("touchend", handleCanvasEnd);
-    window.addEventListener("resize", drawCanvas);
+    window.addEventListener("resize", () => {
+        drawCanvas();
+        updatePlayerNamePlaceholder();
+        updateDateTimePlaceholder();
+    });
 
     drawCanvas();
     updatePlayerNamePlaceholder();
     updateDateTimePlaceholder();
 
+    // Wait for initial ball count button or fallback properly
     const initialBallButton = document.querySelector(".control-button[data-value='3']");
     if (initialBallButton) initialBallButton.click();
     else updateBallCount(3);
+
+    // Debug font load
+    document.fonts.ready.then(() => {
+        log("Fonts loaded.");
+        drawCanvas();
+    });
 
     log("App initialized.");
 });
