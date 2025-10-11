@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Check only runs on the card creation page
     const mainActionBtn = document.getElementById("main-action-btn");
     if (!mainActionBtn) return;
 
@@ -17,9 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("bingo-canvas");
     const ctx = canvas.getContext("2d");
     const canvasPlaceholder = document.getElementById("canvas-placeholder");
-    const imageUploadInput = document.getElementById("image-upload-input");
     const canvasContainer = document.getElementById("canvas-container");
+    const templateGallery = document.getElementById("templateGallery");
     const uploadButton = document.getElementById("upload-button");
+    const imageUploadInput = document.getElementById("image-upload-input");
     const ballSizeSlider = document.getElementById("ball-size-slider");
     const playerNameInput = document.getElementById("player-name-input");
     const nameSizeSlider = document.getElementById("name-size-slider");
@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- Application State ---
     const state = {
+        selectedTemplateUrl: null,
         uploadedImage: null,
         balls: [],
         playerNamePlaceholder: null,
@@ -106,7 +107,39 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- Canvas Drawing Logic (Aspect Ratio Preserved) ---
+    // --- Template Gallery Loader ---
+    async function loadTemplates() {
+        if (!templateGallery) return;
+        templateGallery.innerHTML = '';
+        try {
+            const response = await fetch("/assets/templates.json");
+            if (!response.ok) throw new Error("Template list could not be loaded.");
+            const templates = await response.json();
+            templates.forEach(url => {
+                const img = document.createElement("img");
+                img.src = url;
+                img.className = "gallery-template-thumb";
+                img.style.width = "78px";
+                img.style.height = "78px";
+                img.style.margin = "6px";
+                img.style.borderRadius = "12px";
+                img.style.cursor = "pointer";
+                img.onclick = function () {
+                    state.selectedTemplateUrl = url;
+                    document.querySelectorAll(".gallery-template-thumb").forEach(i => i.style.border = "");
+                    img.style.border = "3px solid #3461f6";
+                    state.uploadedImage = new window.Image();
+                    state.uploadedImage.onload = () => drawCanvas();
+                    state.uploadedImage.src = url;
+                };
+                templateGallery.appendChild(img);
+            });
+        } catch(e) {
+            templateGallery.innerHTML = '<div style="color: red;">Failed to load templates.</div>';
+        }
+    }
+
+    // --- Canvas Drawing Logic ---
     const drawCanvas = () => {
         const dpr = state.devicePixelRatio;
         const cssWidth = canvas.clientWidth;
@@ -114,12 +147,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (canvas.width !== cssWidth * dpr || canvas.height !== cssHeight * dpr) {
             canvas.width = cssWidth * dpr;
             canvas.height = cssHeight * dpr;
-            ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.scale(dpr, dpr);
         }
         ctx.clearRect(0, 0, cssWidth, cssHeight);
 
-        // Draw uploaded image with aspect ratio preserved, centered
+        // Draw uploaded or selected template image
         if (state.uploadedImage) {
             if (canvasPlaceholder) canvasPlaceholder.style.display = "none";
             const imgAspectRatio = state.uploadedImage.width / state.uploadedImage.height;
@@ -277,11 +310,13 @@ document.addEventListener("DOMContentLoaded", () => {
         log("Resetting canvas and form.");
         state.balls = [];
         state.uploadedImage = null;
+        state.selectedTemplateUrl = null;
         document.getElementById("game-id-input").value = "";
         playerNameInput.value = "";
         mainActionBtn.disabled = false;
         mainActionBtn.innerHTML = '<i class="fas fa-rocket"></i> Create Game';
         creationStep = "CREATEGAME";
+        if (templateGallery) templateGallery.innerHTML = '';
         updatePlayerNamePlaceholder();
         updateDateTimePlaceholder();
         const initialBallButton = document.querySelector(".control-button[data-value='3']");
@@ -290,7 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
         drawCanvas();
     };
 
-    // --- Main Action Button Handler (Step 1: Create, Step 2: Upload) ---
+    // --- Main Action Button Handler ---
     mainActionBtn.addEventListener("click", async () => {
         mainActionBtn.disabled = true;
         const gid = document.getElementById("game-id-input").value;
@@ -316,6 +351,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 mainActionBtn.disabled = false;
                 mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Template';
                 creationStep = "UPLOADTEMPLATE";
+                loadTemplates(); // Load the gallery after game created!
             } catch (error) {
                 alert("Game creation failed: " + error.message);
                 mainActionBtn.disabled = false;
@@ -324,14 +360,14 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (creationStep === "UPLOADTEMPLATE") {
             log("Step 2: Upload Template clicked.");
             mainActionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
-            if (!state.uploadedImage) {
-                alert("Please upload a background image first.");
+            if (!state.selectedTemplateUrl) {
+                alert("Please select a template from the gallery below!");
                 mainActionBtn.disabled = false;
                 mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Template';
                 return;
             }
             const templateData = {
-                backgroundImage: state.uploadedImage.src,
+                backgroundImage: state.selectedTemplateUrl,
                 balls: state.balls.map(b => ({ x: b.x / canvas.clientWidth, y: b.y / canvas.clientHeight, radius: b.radius })),
                 playerNamePlaceholder: {
                     x: state.playerNamePlaceholder.x / canvas.clientWidth,
@@ -344,34 +380,27 @@ document.addEventListener("DOMContentLoaded", () => {
                     fontSize: state.dateTimePlaceholder.fontSize
                 }
             };
-            try {
-                const response = await alert("About to send template to backend...");
-
-fetch("https://holdznchill.onrender.com/upload-template", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ gid, templateData })
-})
-.then(response => {
-    alert("Status: " + response.status);
-    return response.json();
-})
-.then(data => {
-    alert("Backend response: " + JSON.stringify(data));
-})
-.catch(err => {
-    alert("Error: " + err.message);
-});
-
-                if (!response.ok) throw new Error((await response.json()).message);
-                alert("Step 2 OK: Template uploaded successfully!");
+            // Debugging: Alert-based network trace
+            alert("About to send template to backend...");
+            fetch("https://holdznchill.onrender.com/upload-template", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ gid, templateData })
+            })
+            .then(response => {
+                alert("Status: " + response.status);
+                return response.json();
+            })
+            .then(data => {
+                alert("Backend response: " + JSON.stringify(data));
                 mainActionBtn.innerHTML = '<i class="fas fa-check"></i> Game Active!';
                 creationStep = "COMPLETE";
-            } catch (error) {
-                alert("Template upload failed: " + error.message);
+            })
+            .catch(err => {
+                alert("Error: " + err.message);
                 mainActionBtn.disabled = false;
                 mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Template';
-            }
+            });
         }
     });
 
@@ -400,6 +429,7 @@ fetch("https://holdznchill.onrender.com/upload-template", {
             button.classList.add("active");
             button.setAttribute("aria-checked", "true");
             if (container.id === "ball-count-selector") updateBallCount(parseInt(button.dataset.value));
+            drawCanvas();
         });
     });
 
