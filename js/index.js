@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // This check ensures the script only runs on the card creation page
     const mainActionBtn = document.getElementById('main-action-btn');
     if (!mainActionBtn) { 
         return; 
@@ -7,8 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const devLog = document.getElementById('dev-log');
     const log = (message) => {
-        // BUG FIX: The 'timestamp' variable is now declared outside the 'if' block,
-        // so it's accessible to both lines that use it.
         const timestamp = new Date().toLocaleTimeString(); 
         if (devLog) {
             devLog.textContent = `[${timestamp}] ${message}`;
@@ -22,17 +19,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('bingo-canvas');
     const ctx = canvas.getContext('2d');
     const canvasPlaceholder = document.getElementById('canvas-placeholder');
-    const imageUploadInput = document.getElementById('image-upload-input');
     const canvasContainer = document.getElementById('canvas-container');
-    const uploadButton = document.getElementById('upload-button');
     const ballSizeSlider = document.getElementById('ball-size-slider');
     const playerNameInput = document.getElementById('player-name-input');
     const nameSizeSlider = document.getElementById('name-size-slider');
     const dateSizeSlider = document.getElementById('date-size-slider');
-    
+    const templateGallery = document.getElementById('templateGallery'); // New template gallery container
+
     // --- Application State ---
-    const state = { uploadedImage: null, balls: [], playerNamePlaceholder: null, dateTimePlaceholder: null, isDragging: false, selectedElement: null, devicePixelRatio: window.devicePixelRatio || 1 };
+    const state = { balls: [], playerNamePlaceholder: null, dateTimePlaceholder: null, isDragging: false, selectedElement: null, devicePixelRatio: window.devicePixelRatio || 1 };
     let creationStep = 'CREATE_GAME';
+    let selectedTemplateUrl = null; // Selected template URL from gallery
 
     // --- Classes for Canvas Objects ---
     class BingoBall {
@@ -75,23 +72,21 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.scale(dpr, dpr);
         }
         ctx.clearRect(0, 0, cssWidth, cssHeight);
-        if (state.uploadedImage) {
+        if (selectedTemplateUrl) {
             if (canvasPlaceholder) canvasPlaceholder.style.display = 'none';
-            const imgAspectRatio = state.uploadedImage.width / state.uploadedImage.height;
-            const canvasAspectRatio = cssWidth / cssHeight;
-            let imgDrawWidth = (imgAspectRatio > canvasAspectRatio) ? cssWidth : cssHeight * imgAspectRatio;
-            let imgDrawHeight = (imgAspectRatio > canvasAspectRatio) ? cssWidth / imgAspectRatio : cssHeight;
-            let imgDrawX = (cssWidth - imgDrawWidth) / 2;
-            let imgDrawY = (cssHeight - imgDrawHeight) / 2;
-            ctx.drawImage(state.uploadedImage, imgDrawX, imgDrawY, imgDrawWidth, imgDrawHeight);
+            const img = new Image();
+            img.onload = () => {
+                ctx.drawImage(img, 0, 0, cssWidth, cssHeight);
+                state.balls.forEach(ball => ball.draw());
+                if (state.playerNamePlaceholder) state.playerNamePlaceholder.draw();
+                if (state.dateTimePlaceholder) state.dateTimePlaceholder.draw();
+            };
+            img.src = selectedTemplateUrl;
         } else {
             if (canvasPlaceholder) canvasPlaceholder.style.display = 'flex';
         }
-        state.balls.forEach(ball => ball.draw());
-        if (state.playerNamePlaceholder) state.playerNamePlaceholder.draw();
-        if (state.dateTimePlaceholder) state.dateTimePlaceholder.draw();
     };
-    
+
     const updatePlayerNamePlaceholder = () => {
         const text = playerNameInput.value || "Player Name";
         const fontSize = parseFloat(nameSizeSlider.value);
@@ -120,16 +115,32 @@ document.addEventListener('DOMContentLoaded', () => {
         drawCanvas();
     };
 
-    const getPointerPos = (event) => { const rect = canvas.getBoundingClientRect(); const clientX = event.clientX || event.touches[0].clientX; const clientY = event.clientY || event.touches[0].clientY; return { x: clientX - rect.left, y: clientY - rect.top }; };
-    const handleCanvasStart = (event) => { event.preventDefault(); const pos = getPointerPos(event); const allElements = [state.dateTimePlaceholder, state.playerNamePlaceholder, ...state.balls].filter(Boolean); state.selectedElement = allElements.find(el => el.isPointInside(pos.x, pos.y)); if (state.selectedElement) { state.isDragging = true; canvasContainer.style.cursor = 'grabbing'; } };
-    const handleCanvasMove = (event) => { event.preventDefault(); if (state.isDragging && state.selectedElement) { const pos = getPointerPos(event); state.selectedElement.x = pos.x; state.selectedElement.y = pos.y; drawCanvas(); } };
-    const handleCanvasEnd = () => { state.isDragging = false; state.selectedElement = null; canvasContainer.style.cursor = 'grab'; };
-    const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => { const img = new Image(); img.onload = () => { state.uploadedImage = img; drawCanvas(); }; img.src = event.target.result; };
-        reader.readAsDataURL(file);
+    const getPointerPos = (event) => { 
+        const rect = canvas.getBoundingClientRect(); 
+        const clientX = event.clientX || event.touches[0].clientX; 
+        const clientY = event.clientY || event.touches[0].clientY; 
+        return { x: clientX - rect.left, y: clientY - rect.top }; 
+    };
+    const handleCanvasStart = (event) => { 
+        event.preventDefault(); 
+        const pos = getPointerPos(event); 
+        const allElements = [state.dateTimePlaceholder, state.playerNamePlaceholder, ...state.balls].filter(Boolean); 
+        state.selectedElement = allElements.find(el => el.isPointInside(pos.x, pos.y)); 
+        if (state.selectedElement) { state.isDragging = true; canvasContainer.style.cursor = 'grabbing'; } 
+    };
+    const handleCanvasMove = (event) => { 
+        event.preventDefault(); 
+        if (state.isDragging && state.selectedElement) { 
+            const pos = getPointerPos(event); 
+            state.selectedElement.x = pos.x; 
+            state.selectedElement.y = pos.y; 
+            drawCanvas(); 
+        } 
+    };
+    const handleCanvasEnd = () => { 
+        state.isDragging = false; 
+        state.selectedElement = null; 
+        canvasContainer.style.cursor = 'grab'; 
     };
     const updateBallCount = (count) => {
         state.balls = [];
@@ -146,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleReset = () => {
         log('Resetting canvas and form.');
         state.balls = []; 
-        state.uploadedImage = null;
+        selectedTemplateUrl = null;
         document.getElementById('game-id-input').value = '';
         playerNameInput.value = '';
         mainActionBtn.disabled = false;
@@ -158,6 +169,42 @@ document.addEventListener('DOMContentLoaded', () => {
         if (initialBallButton) initialBallButton.click(); else updateBallCount(5);
         drawCanvas();
     };
+
+    async function loadTemplates() {
+        try {
+            const res = await fetch('/assets/templates.json');
+            const templates = await res.json();
+            renderTemplateGallery(templates);
+        } catch (error) {
+            log('Failed to load templates.json');
+            alert('Failed to load template gallery. Please refresh and try again.');
+        }
+    }
+
+    function renderTemplateGallery(templates) {
+        if (!templateGallery) return;
+        templateGallery.innerHTML = '';
+        templates.forEach(url => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = 'Card Template';
+            img.className = 'template-thumb';
+            img.onclick = () => {
+                selectedTemplateUrl = url;
+                updateSelectedHighlight(img);
+                log(`Selected template: ${selectedTemplateUrl}`);
+            };
+            templateGallery.appendChild(img);
+        });
+    }
+
+    function updateSelectedHighlight(selectedImg) {
+        if (!templateGallery) return;
+        const imgs = templateGallery.querySelectorAll('img');
+        imgs.forEach(img => {
+            img.style.border = img === selectedImg ? '3px solid #007BFF' : 'none';
+        });
+    }
 
     mainActionBtn.addEventListener('click', async () => {
         mainActionBtn.disabled = true;
@@ -173,19 +220,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!response.ok) throw new Error((await response.json()).message);
                 alert('Step 1 OK: Game created! Ready for Step 2.');
                 mainActionBtn.disabled = false;
-                mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Template';
-                creationStep = 'UPLOAD_TEMPLATE';
+                mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Select Template';
+                creationStep = 'SELECT_TEMPLATE';
+                loadTemplates(); // Load gallery on step 2
             } catch (error) {
                 alert('Game creation failed: ' + error.message);
                 mainActionBtn.disabled = false;
                 mainActionBtn.innerHTML = '<i class="fas fa-rocket"></i> Create Game';
             }
-        } else if (creationStep === 'UPLOAD_TEMPLATE') {
-            log('Step 2: Upload Template clicked.');
-            mainActionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
-            if (!state.uploadedImage) { alert('Please upload a background image first.'); mainActionBtn.disabled = false; mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Template'; return; }
+        } else if (creationStep === 'SELECT_TEMPLATE') {
+            if (!selectedTemplateUrl) {
+                alert('Please select a template from the gallery.');
+                mainActionBtn.disabled = false;
+                mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Select Template';
+                return;
+            }
+            log('Step 2: Template Selected.');
+            mainActionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving Template...';
+            
+            const gid = document.getElementById('game-id-input').value;
             const templateData = {
-                backgroundImage: state.uploadedImage.src,
+                backgroundImage: selectedTemplateUrl,
                 balls: state.balls.map(b => ({ x: b.x / canvas.clientWidth, y: b.y / canvas.clientHeight, radius: b.radius })),
                 playerNamePlaceholder: { x: state.playerNamePlaceholder.x / canvas.clientWidth, y: state.playerNamePlaceholder.y / canvas.clientHeight, fontSize: state.playerNamePlaceholder.fontSize },
                 dateTimePlaceholder: { x: state.dateTimePlaceholder.x / canvas.clientWidth, y: state.dateTimePlaceholder.y / canvas.clientHeight, fontSize: state.dateTimePlaceholder.fontSize }
@@ -193,24 +248,30 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const response = await fetch('https://holdznchill.onrender.com/upload-template', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gid, templateData }) });
                 if (!response.ok) throw new Error((await response.json()).message);
-                alert('Step 2 OK: Template uploaded successfully!');
+                alert('Step 2 OK: Template selected and saved!');
                 mainActionBtn.innerHTML = '<i class="fas fa-check"></i> Game Active!';
                 creationStep = 'COMPLETE';
+                mainActionBtn.disabled = true;
             } catch (error) {
-                alert('Template upload failed: ' + error.message);
+                alert('Template save failed: ' + error.message);
                 mainActionBtn.disabled = false;
-                mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Template';
+                mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Select Template';
             }
         }
     });
 
-    resetButton.addEventListener('click', handleReset);
-    uploadButton.addEventListener('click', () => imageUploadInput.click());
-    imageUploadInput.addEventListener('change', handleImageUpload);
+    resetButton.addEventListener('click', () => {
+        selectedTemplateUrl = null;
+        handleReset();
+    });
+    ballSizeSlider.addEventListener('input', (e) => {
+        const newRadius = parseFloat(e.target.value);
+        state.balls.forEach(ball => ball.radius = newRadius);
+        drawCanvas();
+    });
     playerNameInput.addEventListener('input', updatePlayerNamePlaceholder);
     nameSizeSlider.addEventListener('input', updatePlayerNamePlaceholder);
     dateSizeSlider.addEventListener('input', updateDateTimePlaceholder);
-    ballSizeSlider.addEventListener('input', (e) => { const newRadius = parseFloat(e.target.value); state.balls.forEach(ball => ball.radius = newRadius); drawCanvas(); });
     document.querySelectorAll('.segmented-control').forEach(container => {
         container.addEventListener('click', (e) => {
             const button = e.target.closest('.control-button');
