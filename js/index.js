@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // ... (element selectors and initial state, unchanged)
     const mainActionBtn = document.getElementById("main-action-btn");
     if (!mainActionBtn) return;
 
@@ -10,7 +9,6 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log(`[${timestamp}] ${message}`);
     };
 
-    // --- Element Selectors ---
     const resetButton = document.getElementById("reset-button");
     const canvas = document.getElementById("bingo-canvas");
     const ctx = canvas.getContext("2d");
@@ -104,7 +102,76 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // -------- Overlay Initializers --------
+    async function loadTemplates() {
+        if (!templateGallery) return;
+        templateGallery.innerHTML = '';
+        try {
+            const response = await fetch("/assets/templates.json");
+            if (!response.ok) throw new Error("Template list could not be loaded.");
+            const templates = await response.json();
+            templates.forEach(url => {
+                const img = document.createElement("img");
+                img.src = url;
+                img.className = "gallery-template-thumb";
+                img.style.width = "78px";
+                img.style.height = "78px";
+                img.style.margin = "6px";
+                img.style.borderRadius = "12px";
+                img.style.cursor = "pointer";
+                img.onclick = function () {
+                    state.selectedTemplateUrl = url;
+                    document.querySelectorAll(".gallery-template-thumb").forEach(i => i.style.border = "");
+                    img.style.border = "3px solid #3461f6";
+                    state.uploadedImage = new window.Image();
+                    state.uploadedImage.onload = () => drawCanvas();
+                    state.uploadedImage.src = url;
+                };
+                templateGallery.appendChild(img);
+            });
+        } catch(e) {
+            templateGallery.innerHTML = '<div style="color: red;">Failed to load templates.</div>';
+        }
+    }
+
+    const drawCanvas = () => {
+        const dpr = state.devicePixelRatio;
+        const cssWidth = canvas.clientWidth;
+        const cssHeight = canvas.clientHeight;
+        if (canvas.width !== cssWidth * dpr || canvas.height !== cssHeight * dpr) {
+            canvas.width = cssWidth * dpr;
+            canvas.height = cssHeight * dpr;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+        }
+        ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+        if (state.uploadedImage) {
+            if (canvasPlaceholder) canvasPlaceholder.style.display = "none";
+            const imgAspectRatio = state.uploadedImage.width / state.uploadedImage.height;
+            const canvasAspectRatio = cssWidth / cssHeight;
+            let imgDrawWidth, imgDrawHeight, imgDrawX, imgDrawY;
+
+            if (imgAspectRatio > canvasAspectRatio) {
+                imgDrawWidth = cssWidth;
+                imgDrawHeight = cssWidth / imgAspectRatio;
+                imgDrawX = 0;
+                imgDrawY = (cssHeight - imgDrawHeight) / 2;
+            } else {
+                imgDrawHeight = cssHeight;
+                imgDrawWidth = cssHeight * imgAspectRatio;
+                imgDrawY = 0;
+                imgDrawX = (cssWidth - imgDrawWidth) / 2;
+            }
+            ctx.drawImage(state.uploadedImage, imgDrawX, imgDrawY, imgDrawWidth, imgDrawHeight);
+        } else if (canvasPlaceholder) {
+            canvasPlaceholder.style.display = "flex";
+        }
+
+        state.balls.forEach((ball) => ball.draw());
+        if (state.playerNamePlaceholder) state.playerNamePlaceholder.draw();
+        if (state.dateTimePlaceholder) state.dateTimePlaceholder.draw();
+    };
+
     const updatePlayerNamePlaceholder = () => {
         const text = playerNameInput.value || "Player Name";
         const fontSize = parseFloat(nameSizeSlider.value);
@@ -151,6 +218,63 @@ document.addEventListener("DOMContentLoaded", () => {
         drawCanvas();
     };
 
+    const getPointerPos = (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = event.clientX !== undefined ? event.clientX : event.touches[0].clientX;
+        const clientY = event.clientY !== undefined ? event.clientY : event.touches[0].clientY;
+        return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+        };
+    };
+
+    const handleCanvasStart = (event) => {
+        event.preventDefault();
+        const pos = getPointerPos(event);
+        const allElements = [
+            state.dateTimePlaceholder,
+            state.playerNamePlaceholder,
+            ...state.balls
+        ].filter(Boolean);
+
+        state.selectedElement = allElements.find((el) => el.isPointInside(pos.x, pos.y));
+        if (state.selectedElement) {
+            state.isDragging = true;
+            canvasContainer.style.cursor = "grabbing";
+        }
+    };
+
+    const handleCanvasMove = (event) => {
+        event.preventDefault();
+        if (state.isDragging && state.selectedElement) {
+            const pos = getPointerPos(event);
+            state.selectedElement.x = pos.x;
+            state.selectedElement.y = pos.y;
+            drawCanvas();
+        }
+    };
+
+    const handleCanvasEnd = () => {
+        state.isDragging = false;
+        state.selectedElement = null;
+        canvasContainer.style.cursor = "grab";
+    };
+
+    const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                state.uploadedImage = img;
+                drawCanvas();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
     const updateBallCount = (count) => {
         state.balls = [];
         const radius = parseFloat(ballSizeSlider.value);
@@ -164,87 +288,79 @@ document.addEventListener("DOMContentLoaded", () => {
         drawCanvas();
     };
 
-    // -------- Template Gallery Loader --------
-    async function loadTemplates() {
-        if (!templateGallery) return;
-        templateGallery.innerHTML = '';
+    const handleReset = () => {
+        log("Resetting canvas and form.");
+        state.balls = [];
+        state.uploadedImage = null;
+        state.selectedTemplateUrl = null;
+        document.getElementById("game-id-input").value = "";
+        playerNameInput.value = "";
+        mainActionBtn.disabled = false;
+        mainActionBtn.innerHTML = '<i class="fas fa-rocket"></i> Create Game';
+        creationStep = "CREATEGAME";
+        if (templateGallery) templateGallery.innerHTML = '';
+        updatePlayerNamePlaceholder();
+        updateDateTimePlaceholder();
+        const initialBallButton = document.querySelector(".control-button[data-value='3']");
+        if (initialBallButton) initialBallButton.click();
+        else updateBallCount(5);
+        drawCanvas();
+    };
+
+    async function joinActiveGame() {
+        const psid = prompt("Enter your Player ID/PSID:");
+        const playerName = playerNameInput.value || "Player Name";
+        const cards_count = 1;
+        const cardImage = canvas.toDataURL("image/png");
+        mainActionBtn.disabled = true;
+        mainActionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Joining...';
+
         try {
-            const response = await fetch("/assets/templates.json");
-            if (!response.ok) throw new Error("Template list could not be loaded.");
-            const templates = await response.json();
-            templates.forEach(url => {
-                const img = document.createElement("img");
-                img.src = url;
-                img.className = "gallery-template-thumb";
-                img.style.width = "78px";
-                img.style.height = "78px";
-                img.style.margin = "6px";
-                img.style.borderRadius = "12px";
-                img.style.cursor = "pointer";
-                img.onclick = function () {
-                    state.selectedTemplateUrl = url;
-                    document.querySelectorAll(".gallery-template-thumb").forEach(i => i.style.border = "");
-                    img.style.border = "3px solid #3461f6";
-                    state.uploadedImage = new window.Image();
-                    state.uploadedImage.onload = () => {
-                        // Always ensure overlays show after template is picked
-                        if (!state.playerNamePlaceholder) updatePlayerNamePlaceholder();
-                        if (!state.dateTimePlaceholder) updateDateTimePlaceholder();
-                        if (state.balls.length === 0) updateBallCount(3); // Or use current ball count setting!
-                        drawCanvas();
-                    };
-                    state.uploadedImage.src = url;
-                };
-                templateGallery.appendChild(img);
+            const response = await fetch("https://holdznchill.onrender.com/join-game", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    psid,
+                    name: playerName,
+                    cards_count,
+                    cards: [cardImage]
+                })
             });
-        } catch(e) {
-            templateGallery.innerHTML = '<div style="color: red;">Failed to load templates.</div>';
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message);
+
+            showCard(data.cards[0]);
+            alert("You're in! Your PIN is: " + data.pin);
+            mainActionBtn.innerHTML = '<i class="fas fa-check"></i> Joined!';
+        } catch (error) {
+            alert("Join failed: " + error.message);
+            mainActionBtn.disabled = false;
+            mainActionBtn.innerHTML = '1 Card';
         }
     }
 
-    // -------- Canvas Drawing --------
-    const drawCanvas = () => {
-        const dpr = state.devicePixelRatio;
-        const cssWidth = canvas.clientWidth;
-        const cssHeight = canvas.clientHeight;
-        if (canvas.width !== cssWidth * dpr || canvas.height !== cssHeight * dpr) {
-            canvas.width = cssWidth * dpr;
-            canvas.height = cssHeight * dpr;
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.scale(dpr, dpr);
+    function showCard(cardUrl) {
+        let container = document.getElementById("card-preview-container");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "card-preview-container";
+            document.body.appendChild(container);
         }
-        ctx.clearRect(0, 0, cssWidth, cssHeight);
+        container.innerHTML = "";
+        const img = document.createElement("img");
+        img.src = cardUrl;
+        img.alt = "Your Bingo Card";
+        img.style.maxWidth = "100%";
+        img.style.margin = "12px auto";
+        img.style.display = "block";
+        container.appendChild(img);
+    }
 
-        if (state.uploadedImage) {
-            if (canvasPlaceholder) canvasPlaceholder.style.display = "none";
-            const imgAspectRatio = state.uploadedImage.width / state.uploadedImage.height;
-            const canvasAspectRatio = cssWidth / cssHeight;
-            let imgDrawWidth, imgDrawHeight, imgDrawX, imgDrawY;
-            if (imgAspectRatio > canvasAspectRatio) {
-                imgDrawWidth = cssWidth;
-                imgDrawHeight = cssWidth / imgAspectRatio;
-                imgDrawX = 0;
-                imgDrawY = (cssHeight - imgDrawHeight) / 2;
-            } else {
-                imgDrawHeight = cssHeight;
-                imgDrawWidth = cssHeight * imgAspectRatio;
-                imgDrawY = 0;
-                imgDrawX = (cssWidth - imgDrawWidth) / 2;
-            }
-            ctx.drawImage(state.uploadedImage, imgDrawX, imgDrawY, imgDrawWidth, imgDrawHeight);
-        } else if (canvasPlaceholder) {
-            canvasPlaceholder.style.display = "flex";
-        }
-        state.balls.forEach((ball) => ball.draw());
-        if (state.playerNamePlaceholder) state.playerNamePlaceholder.draw();
-        if (state.dateTimePlaceholder) state.dateTimePlaceholder.draw();
-    };
-
-    // -------- Main Button Handler --------
     mainActionBtn.addEventListener("click", async () => {
-        mainActionBtn.disabled = true;
+        if (mainActionBtn.disabled) return;
         const gid = document.getElementById("game-id-input").value;
         if (creationStep === "CREATEGAME") {
+            log("Step 1: Create Game clicked.");
             mainActionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
             const maxp = document.getElementById("max-players-selector").querySelector(".control-button.active").dataset.value;
             const cards = document.getElementById("cards-per-user-selector").querySelector(".control-button.active").dataset.value;
@@ -272,6 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 mainActionBtn.innerHTML = '<i class="fas fa-rocket"></i> Create Game';
             }
         } else if (creationStep === "UPLOADTEMPLATE") {
+            log("Step 2: Upload Template clicked.");
             mainActionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
             if (!state.selectedTemplateUrl) {
                 alert("Please select a template from the gallery below!");
@@ -293,33 +410,42 @@ document.addEventListener("DOMContentLoaded", () => {
                     fontSize: state.dateTimePlaceholder.fontSize
                 }
             };
-            alert("About to send template to backend...");
-            fetch("https://holdznchill.onrender.com/upload-template", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ gid, templateData })
-            })
-            .then(response => {
-                alert("Status: " + response.status);
-                return response.json();
-            })
-            .then(data => {
-                alert("Backend response: " + JSON.stringify(data));
-                mainActionBtn.innerHTML = '<i class="fas fa-check"></i> Game Active!';
+            try {
+                const response = await fetch("https://holdznchill.onrender.com/upload-template", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ gid, templateData })
+                });
+                if (!response.ok) throw new Error((await response.json()).message);
+                alert("Template uploaded successfully.");
+                mainActionBtn.innerHTML = '1 Card';
                 creationStep = "COMPLETE";
-            })
-            .catch(err => {
-                alert("Error: " + err.message);
+            } catch (error) {
+                alert("Template upload failed: " + error.message);
                 mainActionBtn.disabled = false;
                 mainActionBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Template';
-            });
+            }
+        } else if (creationStep === "COMPLETE") {
+            await joinActiveGame();
         }
     });
 
-    // -------- Other Event Listeners --------
     resetButton.addEventListener("click", handleReset);
     uploadButton.addEventListener("click", () => imageUploadInput.click());
-    imageUploadInput.addEventListener("change", handleImageUpload);
+    imageUploadInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                state.uploadedImage = img;
+                drawCanvas();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
     playerNameInput.addEventListener("input", updatePlayerNamePlaceholder);
     nameSizeSlider.addEventListener("input", updatePlayerNamePlaceholder);
     dateSizeSlider.addEventListener("input", updateDateTimePlaceholder);
@@ -328,6 +454,7 @@ document.addEventListener("DOMContentLoaded", () => {
         state.balls.forEach(ball => ball.radius = newRadius);
         drawCanvas();
     });
+
     document.querySelectorAll(".segmented-control").forEach((container) => {
         container.addEventListener("click", (e) => {
             const button = e.target.closest(".control-button");
@@ -342,6 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
             drawCanvas();
         });
     });
+
     canvas.addEventListener("mousedown", handleCanvasStart);
     canvas.addEventListener("mousemove", handleCanvasMove);
     canvas.addEventListener("mouseup", handleCanvasEnd);
@@ -351,13 +479,13 @@ document.addEventListener("DOMContentLoaded", () => {
     canvas.addEventListener("touchend", handleCanvasEnd);
     window.addEventListener("resize", drawCanvas);
 
-    // -------- Init --------
     drawCanvas();
     updatePlayerNamePlaceholder();
     updateDateTimePlaceholder();
 
-    // Default ball count
     const initialBallButton = document.querySelector(".control-button[data-value='3']");
     if (initialBallButton) initialBallButton.click();
     else updateBallCount(3);
+
+    log("App initialized.");
 });
