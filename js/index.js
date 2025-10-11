@@ -432,20 +432,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     resetButton.addEventListener("click", handleReset);
     uploadButton.addEventListener("click", () => imageUploadInput.click());
-    imageUploadInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const img = new Image();
-            img.onload = () => {
-                state.uploadedImage = img;
-                drawCanvas();
-            };
-            img.src = event.target.result;
-        };
-        reader.readAsDataURL(file);
-    });
+    imageUploadInput.addEventListener("change", handleImageUpload);
     playerNameInput.addEventListener("input", updatePlayerNamePlaceholder);
     nameSizeSlider.addEventListener("input", updatePlayerNamePlaceholder);
     dateSizeSlider.addEventListener("input", updateDateTimePlaceholder);
