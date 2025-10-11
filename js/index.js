@@ -1,17 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // This check ensures the script only runs on the card creation page
     const mainActionBtn = document.getElementById('main-action-btn');
-    if (!mainActionBtn) { return; }
+    if (!mainActionBtn) { 
+        return; 
+    }
 
     const devLog = document.getElementById('dev-log');
     const log = (message) => {
+        // BUG FIX: The 'timestamp' variable is now declared outside the 'if' block,
+        // so it's accessible to both lines that use it.
+        const timestamp = new Date().toLocaleTimeString(); 
         if (devLog) {
-            const timestamp = new Date().toLocaleTimeString();
             devLog.textContent = `[${timestamp}] ${message}`;
         }
         console.log(`[${timestamp}] ${message}`);
     };
     log('App starting...');
 
+    // --- Element Selectors ---
     const resetButton = document.getElementById('reset-button');
     const canvas = document.getElementById('bingo-canvas');
     const ctx = canvas.getContext('2d');
@@ -24,9 +30,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameSizeSlider = document.getElementById('name-size-slider');
     const dateSizeSlider = document.getElementById('date-size-slider');
     
+    // --- Application State ---
     const state = { uploadedImage: null, balls: [], playerNamePlaceholder: null, dateTimePlaceholder: null, isDragging: false, selectedElement: null, devicePixelRatio: window.devicePixelRatio || 1 };
     let creationStep = 'CREATE_GAME';
 
+    // --- Classes for Canvas Objects ---
     class BingoBall {
         constructor(x, y, radius) { this.x = x; this.y = y; this.radius = radius; this.type = 'ball'; }
         draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = '#e74c3c'; ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 5; ctx.fill(); ctx.shadowBlur = 0; ctx.closePath(); }
