@@ -22,6 +22,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const nameSizeSlider = document.getElementById("name-size-slider");
     const dateSizeSlider = document.getElementById("date-size-slider");
 
+    // Variables to hold selected values for max players and cards per user
+    let selectedMaxPlayers = "5";
+    let selectedCardsPerUser = "1";
+
     const state = {
         selectedTemplateUrl: null,
         uploadedImage: null,
@@ -189,7 +193,6 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             state.playerNamePlaceholder.text = text;
             state.playerNamePlaceholder.fontSize = fontSize;
-            // Reposition in case canvas size changed
             state.playerNamePlaceholder.x = canvas.clientWidth / 2;
             state.playerNamePlaceholder.y = canvas.clientHeight * 0.85;
         }
@@ -220,13 +223,60 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             state.dateTimePlaceholder.text = dateTimeText;
             state.dateTimePlaceholder.fontSize = fontSize;
-            // Reposition to center top
             state.dateTimePlaceholder.x = canvas.clientWidth / 2;
             state.dateTimePlaceholder.y = canvas.clientHeight * 0.15;
         }
         drawCanvas();
     };
 
+    const updateBallCount = (count) => {
+        const radius = parseFloat(ballSizeSlider.value);
+        const startX = canvas.clientWidth / 2;
+        const startY = canvas.clientHeight / 2;
+        const totalWidth = (count - 1) * radius * 2.5;
+        state.balls = [];
+        for (let i = 0; i < count; i++) {
+            const ballX = startX - totalWidth / 2 + i * radius * 2.5;
+            state.balls.push(new BingoBall(ballX, startY, radius));
+        }
+        drawCanvas();
+    };
+
+    function getSelectedRadioValue(groupId) {
+        const group = document.getElementById(groupId);
+        const activeBtn = group.querySelector('.control-button.active');
+        return activeBtn ? activeBtn.dataset.value : null;
+    }
+
+    // Attach click listeners to segmented controls
+    document.querySelectorAll('.segmented-control').forEach(group => {
+      group.addEventListener('click', e => {
+        const btn = e.target.closest('.control-button');
+        if (!btn) return;
+        group.querySelectorAll('.control-button').forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-checked', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-checked', 'true');
+
+        if (group.id === 'ball-count-selector') {
+          updateBallCount(parseInt(btn.dataset.value));
+        } else if (group.id === 'max-players-selector') {
+          selectedMaxPlayers = btn.dataset.value;
+          log(`Max players set to ${selectedMaxPlayers}`);
+        } else if (group.id === 'cards-per-user-selector') {
+          selectedCardsPerUser = btn.dataset.value;
+          log(`Cards per user set to ${selectedCardsPerUser}`);
+        }
+      });
+    });
+
+    ballSizeSlider.addEventListener("input", () => {
+        updateBallCount(state.balls.length || 3);
+    });
+
+    // Rest of event listeners and canvas pointer handlers
     const getPointerPos = (event) => {
         const rect = canvas.getBoundingClientRect();
         const clientX = event.clientX !== undefined ? event.clientX : event.touches[0].clientX;
@@ -284,19 +334,6 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.readAsDataURL(file);
     };
 
-    const updateBallCount = (count) => {
-        const radius = parseFloat(ballSizeSlider.value);
-        const startX = canvas.clientWidth / 2;
-        const startY = canvas.clientHeight / 2;
-        const totalWidth = (count - 1) * radius * 2.5;
-        state.balls = []; // reset balls array before pushing new balls
-        for (let i = 0; i < count; i++) {
-            const ballX = startX - totalWidth / 2 + i * radius * 2.5;
-            state.balls.push(new BingoBall(ballX, startY, radius));
-        }
-        drawCanvas();
-    };
-
     const handleReset = () => {
         log("Resetting canvas and form.");
         state.balls = [];
@@ -308,6 +345,8 @@ document.addEventListener("DOMContentLoaded", () => {
         mainActionBtn.innerHTML = '<i class="fas fa-rocket"></i> Create Game';
         creationStep = "CREATEGAME";
         if (templateGallery) templateGallery.innerHTML = '';
+        selectedMaxPlayers = "5";
+        selectedCardsPerUser = "1";
         updatePlayerNamePlaceholder();
         updateDateTimePlaceholder();
         const initialBallButton = document.querySelector(".control-button[data-value='3']");
@@ -319,7 +358,7 @@ document.addEventListener("DOMContentLoaded", () => {
     async function joinActiveGame() {
         const psid = prompt("Enter your Player ID/PSID:");
         const playerName = playerNameInput.value || "Player Name";
-        const cards_count = 1;
+        const cards_count = parseInt(selectedCardsPerUser);
         const cardImage = canvas.toDataURL("image/png");
         mainActionBtn.disabled = true;
         mainActionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Joining...';
@@ -371,8 +410,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (creationStep === "CREATEGAME") {
             log("Step 1: Create Game clicked.");
             mainActionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
-            const maxp = document.getElementById("max-players-selector").querySelector(".control-button.active").dataset.value;
-            const cards = document.getElementById("cards-per-user-selector").querySelector(".control-button.active").dataset.value;
+            const maxp = selectedMaxPlayers;
+            const cards = selectedCardsPerUser;
             if (!gid || !gid.trim()) {
                 alert("Please enter a unique Game ID.");
                 mainActionBtn.disabled = false;
@@ -446,53 +485,28 @@ document.addEventListener("DOMContentLoaded", () => {
     nameSizeSlider.addEventListener("input", updatePlayerNamePlaceholder);
     dateSizeSlider.addEventListener("input", updateDateTimePlaceholder);
 
-    ballSizeSlider.addEventListener("input", (e) => {
-        const count = state.balls.length || 3;
-        updateBallCount(count);
-    });
-
-    document.querySelectorAll(".segmented-control").forEach((container) => {
-        container.addEventListener("click", (e) => {
-            const button = e.target.closest(".control-button");
-            if (!button) return;
-            container.querySelectorAll(".control-button").forEach(btn => {
-                btn.classList.remove("active");
-                btn.setAttribute("aria-checked", "false");
-            });
-            button.classList.add("active");
-            button.setAttribute("aria-checked", "true");
-            if (container.id === "ball-count-selector") updateBallCount(parseInt(button.dataset.value));
-            drawCanvas();
-        });
-    });
-
-    canvas.addEventListener("mousedown", handleCanvasStart);
-    canvas.addEventListener("mousemove", handleCanvasMove);
-    canvas.addEventListener("mouseup", handleCanvasEnd);
-    canvas.addEventListener("mouseleave", handleCanvasEnd);
-    canvas.addEventListener("touchstart", handleCanvasStart, { passive: false });
-    canvas.addEventListener("touchmove", handleCanvasMove, { passive: false });
-    canvas.addEventListener("touchend", handleCanvasEnd);
-
     window.addEventListener("resize", () => {
         updateBallCount(state.balls.length || 3);
         updatePlayerNamePlaceholder();
         updateDateTimePlaceholder();
     });
 
+    // Initial Draw and Setup
     drawCanvas();
     updatePlayerNamePlaceholder();
     updateDateTimePlaceholder();
 
-    const initialBallButton = document.querySelector(".control-button[data-value='3']");
-    if (initialBallButton) initialBallButton.click();
-    else updateBallCount(3);
+    // Initialize balls based on active ball count button or fallback
+    const initialBallButton = document.querySelector(".control-button.active[data-value]");
+    if (initialBallButton) {
+        updateBallCount(parseInt(initialBallButton.dataset.value));
+    } else {
+        updateBallCount(3);
+    }
 
-    // Debug log for fonts loaded
-    document.fonts.ready.then(() => {
-        log("Fonts loaded.");
-        drawCanvas();
-    });
+    // Initialize selected values from currently active buttons
+    selectedMaxPlayers = getSelectedRadioValue('max-players-selector') || selectedMaxPlayers;
+    selectedCardsPerUser = getSelectedRadioValue('cards-per-user-selector') || selectedCardsPerUser;
 
     log("App initialized.");
 });
