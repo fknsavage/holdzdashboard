@@ -2,12 +2,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const mainActionBtn = document.getElementById("main-action-btn");
     if (!mainActionBtn) return;
 
-    const devLog = document.getElementById("dev-log");
-    const log = (message) => {
-        const timestamp = new Date().toLocaleTimeString();
-        if (devLog) devLog.textContent = `[${timestamp}] ${message}`;
-        console.log(`[${timestamp}] ${message}`);
-    };
+   const log = (message) => {
+  const timestamp = new Date().toLocaleTimeString();
+  const fullMessage = `[${timestamp}] ${message}`;
+  if (devLog) {
+    devLog.textContent = fullMessage;
+    devLog.style.backgroundColor = "#222";
+    devLog.style.color = "#0f0";
+    devLog.style.padding = "4px 8px";
+    devLog.style.borderRadius = "4px";
+    devLog.style.fontFamily = "monospace";
+  }
+  console.log(fullMessage);
+};
+
+// Log errors globally
+window.addEventListener('error', (event) => {
+  log(`Error: ${event.message} at ${event.filename}:${event.lineno}`);
+});
+window.addEventListener('unhandledrejection', (event) => {
+  log(`Promise rejection: ${event.reason}`);
+});
+
+// Optional: Log app start
+log("App initialized and logging enabled.");
+
 
     const resetButton = document.getElementById("reset-button");
     const canvas = document.getElementById("bingo-canvas");
