@@ -94,6 +94,10 @@ document.addEventListener("DOMContentLoaded", () => {
             this.height = totalHeight;
         }
         isPointInside(px, py) {
+            // Recalculate dimensions if zero
+            if (this.width === 0 || this.height === 0) {
+                this.draw();
+            }
             const halfWidth = this.width / 2;
             const halfHeight = this.height / 2;
             return (
@@ -189,11 +193,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 fontSize,
                 "player-name"
             );
+            state.playerNamePlaceholder.draw();
         } else {
             state.playerNamePlaceholder.text = text;
             state.playerNamePlaceholder.fontSize = fontSize;
             state.playerNamePlaceholder.x = canvas.clientWidth / 2;
             state.playerNamePlaceholder.y = canvas.clientHeight * 0.85;
+            state.playerNamePlaceholder.draw();
         }
         drawCanvas();
     };
@@ -219,11 +225,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 fontSize,
                 "date-time"
             );
+            state.dateTimePlaceholder.draw();
         } else {
             state.dateTimePlaceholder.text = dateTimeText;
             state.dateTimePlaceholder.fontSize = fontSize;
             state.dateTimePlaceholder.x = canvas.clientWidth / 2;
             state.dateTimePlaceholder.y = canvas.clientHeight * 0.15;
+            state.dateTimePlaceholder.draw();
         }
         drawCanvas();
     };
@@ -247,28 +255,27 @@ document.addEventListener("DOMContentLoaded", () => {
         return activeBtn ? activeBtn.dataset.value : null;
     }
 
-    // Attach click listeners to segmented controls
     document.querySelectorAll('.segmented-control').forEach(group => {
-      group.addEventListener('click', e => {
-        const btn = e.target.closest('.control-button');
-        if (!btn) return;
-        group.querySelectorAll('.control-button').forEach(b => {
-          b.classList.remove('active');
-          b.setAttribute('aria-checked', 'false');
-        });
-        btn.classList.add('active');
-        btn.setAttribute('aria-checked', 'true');
+        group.addEventListener('click', e => {
+            const btn = e.target.closest('.control-button');
+            if (!btn) return;
+            group.querySelectorAll('.control-button').forEach(b => {
+                b.classList.remove('active');
+                b.setAttribute('aria-checked', 'false');
+            });
+            btn.classList.add('active');
+            btn.setAttribute('aria-checked', 'true');
 
-        if (group.id === 'ball-count-selector') {
-          updateBallCount(parseInt(btn.dataset.value));
-        } else if (group.id === 'max-players-selector') {
-          selectedMaxPlayers = btn.dataset.value;
-          log(`Max players set to ${selectedMaxPlayers}`);
-        } else if (group.id === 'cards-per-user-selector') {
-          selectedCardsPerUser = btn.dataset.value;
-          log(`Cards per user set to ${selectedCardsPerUser}`);
-        }
-      });
+            if (group.id === 'ball-count-selector') {
+                updateBallCount(parseInt(btn.dataset.value));
+            } else if (group.id === 'max-players-selector') {
+                selectedMaxPlayers = btn.dataset.value;
+                log(`Max players set to ${selectedMaxPlayers}`);
+            } else if (group.id === 'cards-per-user-selector') {
+                selectedCardsPerUser = btn.dataset.value;
+                log(`Cards per user set to ${selectedCardsPerUser}`);
+            }
+        });
     });
 
     ballSizeSlider.addEventListener("input", () => {
@@ -288,6 +295,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const handleCanvasStart = (event) => {
         event.preventDefault();
         const pos = getPointerPos(event);
+        // Precompute bounding boxes before hit testing
+        if (state.playerNamePlaceholder) state.playerNamePlaceholder.draw();
+        if (state.dateTimePlaceholder) state.dateTimePlaceholder.draw();
+
         const allElements = [
             state.dateTimePlaceholder,
             state.playerNamePlaceholder,
@@ -296,8 +307,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         state.selectedElement = allElements.find((el) => el.isPointInside(pos.x, pos.y));
         if (state.selectedElement) {
+            log(`Started dragging: ${state.selectedElement.type || 'unknown'}`);
             state.isDragging = true;
             canvasContainer.style.cursor = "grabbing";
+        } else {
+            log("No draggable element selected");
         }
     };
 
@@ -489,6 +503,15 @@ document.addEventListener("DOMContentLoaded", () => {
         updateDateTimePlaceholder();
     });
 
+    // Attach pointer event listeners with passive false to enable preventDefault
+    canvas.addEventListener("mousedown", handleCanvasStart, { passive: false });
+    canvas.addEventListener("mousemove", handleCanvasMove, { passive: false });
+    canvas.addEventListener("mouseup", handleCanvasEnd);
+    canvas.addEventListener("mouseleave", handleCanvasEnd);
+    canvas.addEventListener("touchstart", handleCanvasStart, { passive: false });
+    canvas.addEventListener("touchmove", handleCanvasMove, { passive: false });
+    canvas.addEventListener("touchend", handleCanvasEnd);
+
     // Wait for fonts to load before initial drawing of text placeholders
     document.fonts.ready.then(() => {
         log("Fonts loaded.");
@@ -501,11 +524,8 @@ document.addEventListener("DOMContentLoaded", () => {
     drawCanvas();
 
     const initialBallButton = document.querySelector(".control-button.active[data-value]");
-    if (initialBallButton) {
-        updateBallCount(parseInt(initialBallButton.dataset.value));
-    } else {
-        updateBallCount(3);
-    }
+    if (initialBallButton) updateBallCount(parseInt(initialBallButton.dataset.value));
+    else updateBallCount(3);
 
     selectedMaxPlayers = getSelectedRadioValue('max-players-selector') || selectedMaxPlayers;
     selectedCardsPerUser = getSelectedRadioValue('cards-per-user-selector') || selectedCardsPerUser;
