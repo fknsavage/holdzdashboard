@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Card Creation | Holdz N Chill</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <link rel="stylesheet" href="css/admin_style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <link rel="stylesheet" href="css/admin_style.css" />
 </head>
 <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -43,15 +43,16 @@
                 <canvas id="bingo-canvas" aria-label="Bingo card template editor"></canvas>
                 <div id="canvas-placeholder">
                     <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                    <p>Upload your Bingo Hold Card</p>
+                    <p>Select your Bingo Card template</p>
                 </div>
-                <input type="file" id="image-upload-input" accept="image/png, image/jpeg" class="sr-only">
+                <!-- Removed upload input as no upload is needed -->
             </div>
         </section>
-        
+
         <section class="controls-section">
             <div class="controls-container">
-                <button class="action-button upload-button" id="upload-button"><i class="fas fa-upload"></i> Upload PNG</button>
+                <!-- Changed Upload Button to Gallery container -->
+                <div id="templateGallery" class="template-gallery" style="margin-bottom: 1rem;"></div>
                 
                 <div class="control-group">
                     <label class="control-label">Balls Drawn:</label>
@@ -64,24 +65,24 @@
                     </div>
                     <div class="size-slider">
                         <label for="ball-size-slider"><i class="fas fa-dice" aria-hidden="true"></i><span class="sr-only">Ball Size</span></label>
-                        <input type="range" min="10" max="50" value="24" class="slider" id="ball-size-slider">
+                        <input type="range" min="10" max="50" value="24" class="slider" id="ball-size-slider" />
                     </div>
                 </div>
 
                 <div class="control-group">
                     <label for="player-name-input" class="control-label">Player Name:</label>
-                    <input type="text" class="text-input" id="player-name-input" placeholder="Enter player's name">
+                    <input type="text" class="text-input" id="player-name-input" placeholder="Enter player's name" />
                     <div class="size-slider">
                         <label for="name-size-slider"><i class="fas fa-font" aria-hidden="true"></i><span class="sr-only">Player Name Font Size</span></label>
-                        <input type="range" min="10" max="50" value="24" class="slider" id="name-size-slider">
+                        <input type="range" min="10" max="50" value="24" class="slider" id="name-size-slider" />
                     </div>
                 </div>
 
                 <div class="control-group">
-                    <label class="control-label">Date & Time Font Size:</label>
+                    <label class="control-label">Date &amp; Time Font Size:</label>
                     <div class="size-slider">
                         <label for="date-size-slider"><i class="fas fa-calendar-alt" aria-hidden="true"></i><span class="sr-only">Date and Time Font Size</span></label>
-                        <input type="range" min="10" max="50" value="20" class="slider" id="date-size-slider">
+                        <input type="range" min="10" max="50" value="20" class="slider" id="date-size-slider" />
                     </div>
                 </div>
 
@@ -96,7 +97,7 @@
                 </div>
 
                 <div class="control-group">
-                    <label class="control-label">Cards per User:</label>
+                    <label for="cards-per-user-selector" class="control-label">Cards per User:</label>
                     <div class="segmented-control" id="cards-per-user-selector" role="radiogroup">
                         <button class="control-button active" data-value="1" role="radio" aria-checked="true">1</button>
                         <button class="control-button" data-value="3" role="radio" aria-checked="false">3</button>
@@ -106,7 +107,7 @@
 
                 <div class="control-group">
                     <label for="game-id-input" class="control-label">Game ID:</label>
-                    <input type="text" class="text-input" id="game-id-input" placeholder="Enter unique game ID">
+                    <input type="text" class="text-input" id="game-id-input" placeholder="Enter unique game ID" />
                 </div>
 
                 <div class="action-buttons-container">
