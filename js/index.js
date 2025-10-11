@@ -87,7 +87,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             ctx.shadowBlur = 0;
 
-            // Calculate width as max line width
             this.width = lines.length === 0 ? 0 : Math.max(...lines.map(line => ctx.measureText(line).width));
             this.height = totalHeight;
         }
@@ -123,9 +122,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     state.selectedTemplateUrl = url;
                     document.querySelectorAll(".gallery-template-thumb").forEach(i => i.style.border = "");
                     img.style.border = "3px solid #3461f6";
-                    state.uploadedImage = new window.Image();
-                    state.uploadedImage.onload = () => drawCanvas();
-                    state.uploadedImage.src = url;
+                    const newImage = new Image();
+                    newImage.onload = () => {
+                        state.uploadedImage = newImage;
+                        drawCanvas();
+                    };
+                    newImage.src = url;
                 };
                 templateGallery.appendChild(img);
             });
@@ -187,6 +189,9 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             state.playerNamePlaceholder.text = text;
             state.playerNamePlaceholder.fontSize = fontSize;
+            // Reposition in case canvas size changed
+            state.playerNamePlaceholder.x = canvas.clientWidth / 2;
+            state.playerNamePlaceholder.y = canvas.clientHeight * 0.85;
         }
         drawCanvas();
     };
@@ -215,6 +220,9 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             state.dateTimePlaceholder.text = dateTimeText;
             state.dateTimePlaceholder.fontSize = fontSize;
+            // Reposition to center top
+            state.dateTimePlaceholder.x = canvas.clientWidth / 2;
+            state.dateTimePlaceholder.y = canvas.clientHeight * 0.15;
         }
         drawCanvas();
     };
@@ -277,11 +285,11 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const updateBallCount = (count) => {
-        state.balls = [];
         const radius = parseFloat(ballSizeSlider.value);
         const startX = canvas.clientWidth / 2;
         const startY = canvas.clientHeight / 2;
         const totalWidth = (count - 1) * radius * 2.5;
+        state.balls = []; // reset balls array before pushing new balls
         for (let i = 0; i < count; i++) {
             const ballX = startX - totalWidth / 2 + i * radius * 2.5;
             state.balls.push(new BingoBall(ballX, startY, radius));
@@ -437,10 +445,9 @@ document.addEventListener("DOMContentLoaded", () => {
     playerNameInput.addEventListener("input", updatePlayerNamePlaceholder);
     nameSizeSlider.addEventListener("input", updatePlayerNamePlaceholder);
     dateSizeSlider.addEventListener("input", updateDateTimePlaceholder);
-    
-    // Fix: On ball size slider change, update ball count to reposition balls correctly.
+
     ballSizeSlider.addEventListener("input", (e) => {
-        const count = state.balls.length || 3; // fallback to 3 if no balls yet
+        const count = state.balls.length || 3;
         updateBallCount(count);
     });
 
@@ -466,8 +473,9 @@ document.addEventListener("DOMContentLoaded", () => {
     canvas.addEventListener("touchstart", handleCanvasStart, { passive: false });
     canvas.addEventListener("touchmove", handleCanvasMove, { passive: false });
     canvas.addEventListener("touchend", handleCanvasEnd);
+
     window.addEventListener("resize", () => {
-        drawCanvas();
+        updateBallCount(state.balls.length || 3);
         updatePlayerNamePlaceholder();
         updateDateTimePlaceholder();
     });
@@ -476,12 +484,11 @@ document.addEventListener("DOMContentLoaded", () => {
     updatePlayerNamePlaceholder();
     updateDateTimePlaceholder();
 
-    // Wait for initial ball count button or fallback properly
     const initialBallButton = document.querySelector(".control-button[data-value='3']");
     if (initialBallButton) initialBallButton.click();
     else updateBallCount(3);
 
-    // Debug font load
+    // Debug log for fonts loaded
     document.fonts.ready.then(() => {
         log("Fonts loaded.");
         drawCanvas();
