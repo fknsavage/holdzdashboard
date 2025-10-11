@@ -97,35 +97,26 @@ async function handleSetUrl(button) {
     }
 }
 
-// --- NEWLY IMPLEMENTED FUNCTION ---
+// THIS FUNCTION HAS BEEN SIMPLIFIED
 async function endGame(gid) {
     log(`Attempting to end game: ${gid}`);
-    const winnerName = prompt("Enter the winner's name:");
-
-    if (winnerName && winnerName.trim() !== '') {
-        if (confirm(`Are you sure you want to end game ${gid} and declare ${winnerName} as the winner?`)) {
-            try {
-                const response = await fetch(`${API_URL}/end-game/${gid}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ winnerName })
-                });
-                const result = await response.json();
-                if (!response.ok) throw new Error(result.message || 'Failed to end game.');
-                
-                alert('Game ended successfully!');
-                fetchActiveGames(); // Refresh the list of active games
-            } catch (error) {
-                log(`Error ending game: ${error.message}`);
-                alert(`Error: ${error.message}`);
-            }
+    if (confirm(`Are you sure you want to end game ${gid}? This cannot be undone.`)) {
+        try {
+            const response = await fetch(`${API_URL}/end-game/${gid}`, {
+                method: 'POST', // No body is needed
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || 'Failed to end game.');
+            
+            alert('Game ended successfully!');
+            fetchActiveGames(); // Refresh the list of active games
+        } catch (error) {
+            log(`Error ending game: ${error.message}`);
+            alert(`Error: ${error.message}`);
         }
-    } else if (winnerName !== null) { // User clicked OK but left it blank
-        alert("Winner's name cannot be empty.");
     }
 }
 
-// --- NEWLY IMPLEMENTED FUNCTION ---
 async function removePlayer(gid, player) {
     log(`Attempting to remove player: ${player.name}`);
     if (confirm(`Are you sure you want to remove ${player.name} (PIN: ${player.pin}) from game ${gid}?`)) {
@@ -145,21 +136,16 @@ async function removePlayer(gid, player) {
     }
 }
 
-
 function attachEventListeners(element, game) {
     element.querySelector('.set-url-btn')?.addEventListener('click', (e) => handleSetUrl(e.target));
-    
     element.querySelector('.send-alert-btn')?.addEventListener('click', () => {
         log(`Send alert for game ${game.gid}`);
         alert('Feature not yet implemented.');
     });
-
     element.querySelector('.end-game-btn')?.addEventListener('click', () => endGame(game.gid));
-
     element.querySelectorAll('.player-item').forEach(item => {
         const psid = item.dataset.playerPsid;
         const player = game.players.find(p => p.psid === psid);
-
         item.querySelector('.view-cards-btn')?.addEventListener('click', () => {
             if (player) openCardsModal(player);
         });
@@ -188,7 +174,6 @@ function renderGames(games) {
 }
 
 function openCardsModal(player) {
-    // Basic implementation, you can enhance this
     const cardContent = player.cards.map(url => `<img src="${url}" alt="Card" style="max-width: 100%; margin-bottom: 10px;">`).join('');
     modalCardsContainer.innerHTML = `<h3>Cards for ${player.name}</h3>${cardContent}`;
     playerCardsModal.classList.add('open');
