@@ -112,3 +112,31 @@ body {
     .canvas-section { flex: 1.5; position: sticky; top: 2rem; }
     .controls-section { flex: 1; max-height: calc(100vh - 150px); overflow-y: auto; }
 }
+.template-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+  justify-content: center;
+}
+
+.template-thumb {
+  width: 120px;
+  height: auto;
+  cursor: pointer;
+  border-radius: 8px;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.15);
+  border: 2px solid transparent;
+  transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.template-thumb:hover {
+  border-color: #007BFF;
+  transform: scale(1.05);
+}
+
+.template-thumb.selected {
+  border-color: #0056b3;
+  box-shadow: 0 4px 15px rgba(0, 0, 255, 0.5);
+  transform: scale(1.1);
+}
