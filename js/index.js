@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const nameSizeSlider = document.getElementById("name-size-slider");
     const dateSizeSlider = document.getElementById("date-size-slider");
 
-    // Variables to hold selected values for max players and cards per user
     let selectedMaxPlayers = "5";
     let selectedCardsPerUser = "1";
 
@@ -276,7 +275,6 @@ document.addEventListener("DOMContentLoaded", () => {
         updateBallCount(state.balls.length || 3);
     });
 
-    // Rest of event listeners and canvas pointer handlers
     const getPointerPos = (event) => {
         const rect = canvas.getBoundingClientRect();
         const clientX = event.clientX !== undefined ? event.clientX : event.touches[0].clientX;
@@ -491,12 +489,17 @@ document.addEventListener("DOMContentLoaded", () => {
         updateDateTimePlaceholder();
     });
 
+    // Wait for fonts to load before initial drawing of text placeholders
+    document.fonts.ready.then(() => {
+        log("Fonts loaded.");
+        updatePlayerNamePlaceholder();
+        updateDateTimePlaceholder();
+        drawCanvas();
+    });
+
     // Initial Draw and Setup
     drawCanvas();
-    updatePlayerNamePlaceholder();
-    updateDateTimePlaceholder();
 
-    // Initialize balls based on active ball count button or fallback
     const initialBallButton = document.querySelector(".control-button.active[data-value]");
     if (initialBallButton) {
         updateBallCount(parseInt(initialBallButton.dataset.value));
@@ -504,7 +507,6 @@ document.addEventListener("DOMContentLoaded", () => {
         updateBallCount(3);
     }
 
-    // Initialize selected values from currently active buttons
     selectedMaxPlayers = getSelectedRadioValue('max-players-selector') || selectedMaxPlayers;
     selectedCardsPerUser = getSelectedRadioValue('cards-per-user-selector') || selectedCardsPerUser;
 
