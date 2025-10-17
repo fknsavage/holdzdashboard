@@ -1,0 +1,234 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Holdz N Chill – Tests</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0f1220;color:#fff;margin:0;padding:16px}
+    .card{background:#171a2b;border:1px solid #ffc10755;border-radius:12px;padding:12px 14px;box-shadow:0 6px 28px #0006;margin-bottom:14px}
+    label{display:block;margin-top:10px;font-size:14px;opacity:.95}
+    input,button{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;border-radius:10px;border:1px solid #3a3d5c;background:#0f1120;color:#fff}
+    button{background:#ffc107;color:#000;border:none;font-weight:700;cursor:pointer}
+    pre{white-space:pre-wrap;background:#0f1120;border:1px solid #2b2f4b;padding:10px;border-radius:10px;max-height:45vh;overflow:auto}
+    .row{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:980px){.row{grid-template-columns:1fr 1fr}}
+    .muted{opacity:.85}
+  </style>
+</head>
+<body>
+  <h2>Holdz N Chill – Tests</h2>
+
+  <!-- A) Join Load Test (unchanged) -->
+  <div class="card">
+    <h3>Join Load Test</h3>
+    <div class="row">
+      <div>
+        <label>API Base URL</label>
+        <input id="api" value="https://holdznchill.onrender.com">
+        <label>Parallel Joins</label>
+        <input id="joins" type="number" value="40" min="1" max="300">
+        <label>Cards per Join</label>
+        <input id="cardsEach" type="number" value="1" min="1" max="5">
+        <label>Name Prefix</label>
+        <input id="prefix" value="MobileTester">
+        <button id="runBtn">Run Join Test</button>
+      </div>
+      <div>
+        <label>Status</label>
+        <pre id="status">Idle</pre>
+        <label>Summary</label>
+        <pre id="summary"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- B) RNG Fairness Test -->
+  <div class="card">
+    <h3>RNG Fairness Test</h3>
+    <div class="row">
+      <div>
+        <label>API Base URL</label>
+        <input id="apiRng" value="https://holdznchill.onrender.com">
+        <label>Samples (cards to generate)</label>
+        <input id="rngSamples" type="number" value="2000" min="10" max="10000">
+        <label>Balls per Card (ballCount)</label>
+        <input id="rngBallCount" type="number" value="10" min="1" max="25">
+        <button id="rngBtn">Run RNG Test</button>
+        <p class="muted">Requires POST /debug/generate-card with JSON { samples, ballCount }.</p>
+      </div>
+      <div>
+        <label>RNG Status</label>
+        <pre id="rngStatus">Idle</pre>
+        <label>RNG Summary</label>
+        <pre id="rngSummary"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    function uid(){ return 'user_' + Date.now() + Math.random().toString(36).slice(2,8); }
+    function now(){ return (performance && performance.now) ? performance.now() : Date.now(); }
+    async function fetchJSON(url, opts){ const r = await fetch(url, opts); const j = await r.json().catch(()=> ({})); return { ok: r.ok, status: r.status, json: j }; }
+    function append(el, msg){ el.textContent += (el.textContent ? '\n' : '') + msg; el.scrollTop = el.scrollHeight; }
+
+    // A) Join Load Test (as-is)
+    $('runBtn').addEventListener('click', async () => {
+      const API = $('api').value.trim();
+      const N = parseInt($('joins').value, 10) || 20;
+      const CARDS = parseInt($('cardsEach').value, 10) || 1;
+      const PREFIX = $('prefix').value.trim() || 'Tester';
+      const statusEl = $('status');
+      const summaryEl = $('summary');
+      statusEl.textContent = 'Checking active game…';
+      summaryEl.textContent = '';
+
+      const g = await fetchJSON(`${API}/active-game`);
+      if (!g.ok) { statusEl.textContent = `No active game (HTTP ${g.status}). Create a game first.`; return; }
+      const game = g.json;
+      append(statusEl, `Active game: ${game.game_id} (cards total: ${game.card_count})`);
+      append(statusEl, `Launching ${N} parallel join(s)…`);
+
+      const t0 = Date.now();
+      const tasks = Array.from({length: N}).map(async (_, i) => {
+        const psid = uid();
+        const name = `${PREFIX}_${i+1}`;
+        const r0 = now();
+        const r = await fetchJSON(`${API}/join-game`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ psid, name, cards_count: CARDS })
+        });
+        const r1 = now();
+        if (r.ok) append(statusEl, `✔️ ${name} joined in ${Math.round(r1-r0)} ms (${(r.json.cards||[]).length} card(s))`);
+        else {
+          const m = (r.json.message || '').match(/only 0 cards are left/i) ? 'Game is full.' : (r.json.message || `HTTP ${r.status}`);
+          append(statusEl, `❌ ${name} failed: ${m}`);
+        }
+        return { ok: r.ok, ms: r1 - r0, cards: r.json.cards || [], msg: r.json.message || '' };
+      });
+
+      const results = await Promise.all(tasks);
+      const t1 = Date.now();
+
+      const successes = results.filter(x => x.ok);
+      const failures = results.filter(x => !x.ok);
+      const urls = successes.flatMap(s => s.cards);
+      const seen = new Map();
+      urls.forEach(u => seen.set(u, (seen.get(u)||0)+1));
+      const dups = [...seen.entries()].filter(([,c]) => c>1);
+
+      const times = successes.map(s => s.ms).sort((a,b)=>a-b);
+      const avg = times.length ? Math.round(times.reduce((a,b)=>a+b,0)/times.length) : 0;
+      const p95 = times.length ? Math.round(times[Math.floor(times.length*0.95)-1] || times[times.length-1]) : 0;
+
+      summaryEl.textContent = [
+        `Total joins: ${N}`,
+        `Successes: ${successes.length}`,
+        `Failures: ${failures.length}`,
+        `Duplicates: ${dups.length ? dups.length : 'None'}`,
+        `Latency avg(ms): ${avg}, p95(ms): ${p95}`,
+        `Elapsed(ms): ${t1 - t0}`
+      ].join('\n');
+    });
+
+    // B) RNG Fairness Test
+    function chiSquareTest(obsCounts, expectedPerBin){
+      let chi=0; for (const c of obsCounts){ const diff = c - expectedPerBin; chi += (diff*diff)/expectedPerBin; }
+      const dof = obsCounts.length - 1;
+      return { chi, dof };
+    }
+    function summarizeUniformity(freqMap, minNum, maxNum){
+      const bins = [];
+      for (let n=minNum; n<=maxNum; n++) bins.push(freqMap.get(n)||0);
+      const total = bins.reduce((a,b)=>a+b,0);
+      const expected = total / bins.length;
+      const mean = expected;
+      const variance = bins.reduce((s,c)=>s + Math.pow(c-mean,2),0) / bins.length;
+      const stdev = Math.sqrt(variance);
+      const maxDevPct = bins.length ? Math.max(...bins.map(c => Math.abs(c-mean)/mean*100)) : 0;
+      const { chi, dof } = chiSquareTest(bins, expected);
+      return { total, bins, mean, stdev, maxDevPct, chi, dof };
+    }
+    function columnOf(n){
+      if (n>=1 && n<=15) return 'B';
+      if (n<=30) return 'I';
+      if (n<=45) return 'N';
+      if (n<=60) return 'G';
+      return 'O';
+    }
+
+    $('rngBtn').addEventListener('click', async () => {
+      const API = $('apiRng').value.trim();
+      const SAMPLES = parseInt($('rngSamples').value,10) || 2000;
+      const BALLS = parseInt($('rngBallCount').value,10) || 10;
+
+      const status = $('rngStatus');
+      const summary = $('rngSummary');
+      status.textContent = `Requesting ${SAMPLES} cards with ballCount=${BALLS}…`;
+      summary.textContent = '';
+
+      const r = await fetchJSON(`${API}/debug/generate-card`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ samples: SAMPLES, ballCount: BALLS })
+      });
+      if (!r.ok || !r.json.ok) {
+        status.textContent = `RNG call failed (HTTP ${r.status})`;
+        return;
+      }
+      status.textContent = `Received ${r.json.cards.length} cards. Analyzing…`;
+
+      // Global frequency 1–75
+      const freq = new Map();
+      // Per column
+      const colFreq = { B:new Map(), I:new Map(), N:new Map(), G:new Map(), O:new Map() };
+      for (let i=1;i<=75;i++){ colFreq[columnOf(i)].set(i,0); }
+
+      for (const arr of r.json.cards) {
+        for (const num of arr) {
+          freq.set(num, (freq.get(num)||0)+1);
+          const col = columnOf(num);
+          colFreq[col].set(num, (colFreq[col].get(num)||0)+1);
+        }
+      }
+
+      // Global stats
+      const global = summarizeUniformity(freq, 1, 75);
+
+      // Column stats
+      const colStats = {};
+      for (const col of ['B','I','N','G','O']) {
+        const m = colFreq[col];
+        const min = col==='B'?1:col==='I'?16:col==='N'?31:col==='G'?46:61;
+        const max = col==='B'?15:col==='I'?30:col==='N'?45:col==='G'?60:75;
+        colStats[col] = summarizeUniformity(m, min, max);
+      }
+
+      // Simple pass heuristic:
+      //  - global max deviation < 15%
+      //  - stdev/mean < 0.5
+      //  - columns max deviation < 20%
+      const passGlobal = global.maxDevPct < 15 && (global.stdev / (global.mean || 1)) < 0.5;
+      const passCols = ['B','I','N','G','O'].every(c => colStats[c].maxDevPct < 20);
+      const pass = passGlobal && passCols;
+
+      summary.textContent = [
+        `RESULT: ${pass ? 'PASS ✅' : 'CHECK ⚠️'}`,
+        ``,
+        `Global totals`,
+        `  Draws: ${global.total}`,
+        `  Mean/bin: ${global.mean.toFixed(2)}  Stdev: ${global.stdev.toFixed(2)}  Max dev: ${global.maxDevPct.toFixed(1)}%`,
+        `  Chi-square: ${global.chi.toFixed(1)} (dof=${global.dof})`,
+        ``,
+        `By column`,
+        ...['B','I','N','G','O'].map(c => {
+          const s = colStats[c];
+          return `  ${c}: mean=${s.mean.toFixed(2)} stdev=${s.stdev.toFixed(2)} maxDev=${s.maxDevPct.toFixed(1)}% chi=${s.chi.toFixed(1)} dof=${s.dof}`;
+        })
+      ].join('\n');
+    });
+  </script>
+</body>
+</html>
